@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "DailyTodo",
-    "slug": "DailyTodo",
+    "name": "Daily todo",
+    "slug": "daily-todo",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
