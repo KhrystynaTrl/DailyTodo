@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import RecentActivityList from "../../components/activity/RecentActivityList";
 import TodoTodayCard from "../../components/activity/TodoTodayCard";
@@ -96,9 +102,7 @@ export default function Home() {
   }
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-    >
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ScrollView
         contentContainerStyle={{ padding: theme.spacing.lg }}
         refreshControl={
@@ -137,12 +141,20 @@ export default function Home() {
             marginBottom: theme.spacing.lg,
           }}
         >
-          <StatCard label="Acqua" value={`${stats?.waterMl ?? 0} ml`} style={{ flex: 1 }}>
+          <StatCard
+            label="Acqua"
+            value={`${stats?.waterMl ?? 0} ml`}
+            style={{ flex: 1 }}
+          >
             <ProgressBar
               progress={(stats?.waterMl ?? 0) / (stats?.waterGoalMl ?? 1)}
             />
           </StatCard>
-          <StatCard label="Passi" value={`${stats?.steps ?? 0}`} style={{ flex: 1 }} />
+          <StatCard
+            label="Passi"
+            value={`${stats?.steps ?? 0}`}
+            style={{ flex: 1 }}
+          />
           <StatCard
             label="Minuti attività"
             value={`${stats?.activityMinutes ?? 0}`}

@@ -8,6 +8,7 @@ export type ColorTokens = {
   textMuted: string;
   border: string;
   error: string;
+  warning: string;
 };
 
 export const lightColors: ColorTokens = {
@@ -20,6 +21,7 @@ export const lightColors: ColorTokens = {
   textMuted: "#666666",
   border: "#819A91",
   error: "#CE2626",
+  warning: "#D98C4A",
 };
 
 export const darkColors: ColorTokens = {
@@ -32,4 +34,5 @@ export const darkColors: ColorTokens = {
   textMuted: "#CBCBCB",
   border: "#A7C1A8",
   error: "#F87171",
+  warning: "#F0A868",
 };

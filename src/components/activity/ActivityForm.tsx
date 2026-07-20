@@ -1,0 +1,303 @@
+import React, { useEffect, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { useTheme } from "../../context/ThemeContext";
+import { Activity } from "../../mocks/activities.mock";
+import { formatDateInput, formatTimeInput } from "../../utils/date";
+import { isRequired, isValidDate } from "../../utils/validators";
+import AppButton from "../ui/AppButton";
+import AppTextField from "../ui/AppTextField";
+
+type ActivityFormProps = {
+  visible: boolean;
+  initialActivity: Activity | null;
+  onSave: (activity: Omit<Activity, "id">) => void;
+  onClose: () => void;
+};
+
+const categories: Activity["categoria"][] = [
+  "allenamento",
+  "salute",
+  "alimentazione",
+  "altro",
+];
+
+const categoryLabel: Record<Activity["categoria"], string> = {
+  allenamento: "Allenamento",
+  salute: "Salute",
+  alimentazione: "Alimentazione",
+  altro: "Altro",
+};
+
+const priorities: Activity["priorita"][] = ["bassa", "media", "alta"];
+
+const priorityLabel: Record<Activity["priorita"], string> = {
+  bassa: "Bassa",
+  media: "Media",
+  alta: "Alta",
+};
+
+const emptyForm = {
+  titolo: "",
+  descrizione: "",
+  categoria: "altro" as Activity["categoria"],
+  data: "",
+  ora: "",
+  priorita: "media" as Activity["priorita"],
+};
+
+export default function ActivityForm({
+  visible,
+  initialActivity,
+  onSave,
+  onClose,
+}: ActivityFormProps) {
+  const { theme } = useTheme();
+
+  const [titolo, setTitolo] = useState(emptyForm.titolo);
+  const [titoloError, setTitoloError] = useState("");
+  const [descrizione, setDescrizione] = useState(emptyForm.descrizione);
+  const [categoria, setCategoria] = useState(emptyForm.categoria);
+  const [data, setData] = useState(emptyForm.data);
+  const [dataError, setDataError] = useState("");
+  const [ora, setOra] = useState(emptyForm.ora);
+  const [priorita, setPriorita] = useState(emptyForm.priorita);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    if (initialActivity) {
+      setTitolo(initialActivity.titolo);
+      setDescrizione(initialActivity.descrizione ?? "");
+      setCategoria(initialActivity.categoria);
+      setData(initialActivity.data);
+      setOra(initialActivity.ora ?? "");
+      setPriorita(initialActivity.priorita);
+    } else {
+      setTitolo(emptyForm.titolo);
+      setDescrizione(emptyForm.descrizione);
+      setCategoria(emptyForm.categoria);
+      setData(emptyForm.data);
+      setOra(emptyForm.ora);
+      setPriorita(emptyForm.priorita);
+    }
+
+    setTitoloError("");
+    setDataError("");
+  }, [visible, initialActivity]);
+
+  const validateTitolo = () => {
+    if (!isRequired(titolo)) {
+      setTitoloError("Inserisci un titolo");
+      return false;
+    }
+    setTitoloError("");
+    return true;
+  };
+
+  const validateData = () => {
+    if (!isRequired(data) || !isValidDate(data)) {
+      setDataError("Inserisci una data valida (GG/MM/AAAA)");
+      return false;
+    }
+    setDataError("");
+    return true;
+  };
+
+  const handleSave = () => {
+    const isTitoloValid = validateTitolo();
+    const isDataValid = validateData();
+
+    if (!isTitoloValid || !isDataValid) return;
+
+    onSave({
+      titolo,
+      descrizione: descrizione || undefined,
+      categoria,
+      data,
+      ora: ora || undefined,
+      completata: initialActivity?.completata ?? false,
+      priorita,
+    });
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          justifyContent: "flex-end",
+        }}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <View
+            style={{
+              backgroundColor: theme.colors.background,
+              borderTopLeftRadius: theme.radii.lg,
+              borderTopRightRadius: theme.radii.lg,
+              maxHeight: "85%",
+            }}
+          >
+            <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
+              <Text
+                style={{
+                  color: theme.colors.text,
+                  marginBottom: theme.spacing.lg,
+                  ...theme.text.h2,
+                }}
+              >
+                {initialActivity ? "Modifica attività" : "Nuova attività"}
+              </Text>
+
+              <AppTextField
+                placeholder="Titolo"
+                value={titolo}
+                onChangeText={setTitolo}
+                onBlur={validateTitolo}
+                error={titoloError}
+              />
+
+              <AppTextField
+                placeholder="Descrizione (opzionale)"
+                value={descrizione}
+                onChangeText={setDescrizione}
+                multiline
+              />
+
+              <Text
+                style={{
+                  color: theme.colors.textMuted,
+                  marginBottom: theme.spacing.xs,
+                  ...theme.text.caption,
+                }}
+              >
+                Categoria
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: theme.spacing.xs,
+                  marginBottom: theme.spacing.md,
+                }}
+              >
+                {categories.map((option) => (
+                  <Pressable
+                    key={option}
+                    onPress={() => setCategoria(option)}
+                    style={{
+                      backgroundColor:
+                        categoria === option
+                          ? theme.colors.primary
+                          : theme.colors.surface,
+                      borderRadius: theme.radii.md,
+                      paddingVertical: theme.spacing.xs,
+                      paddingHorizontal: theme.spacing.sm,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          categoria === option
+                            ? theme.colors.onPrimary
+                            : theme.colors.text,
+                        ...theme.text.caption,
+                      }}
+                    >
+                      {categoryLabel[option]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <AppTextField
+                placeholder="Data (GG/MM/AAAA)"
+                value={data}
+                onChangeText={(text) => setData(formatDateInput(text))}
+                onBlur={validateData}
+                error={dataError}
+                keyboardType="numeric"
+                maxLength={10}
+              />
+
+              <AppTextField
+                placeholder="Ora (opzionale, HH:MM)"
+                value={ora}
+                onChangeText={(text) => setOra(formatTimeInput(text))}
+                keyboardType="numeric"
+                maxLength={5}
+              />
+
+              <Text
+                style={{
+                  color: theme.colors.textMuted,
+                  marginBottom: theme.spacing.xs,
+                  ...theme.text.caption,
+                }}
+              >
+                Priorità
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: theme.spacing.xs,
+                  marginBottom: theme.spacing.lg,
+                }}
+              >
+                {priorities.map((option) => (
+                  <Pressable
+                    key={option}
+                    onPress={() => setPriorita(option)}
+                    style={{
+                      backgroundColor:
+                        priorita === option
+                          ? theme.colors.primary
+                          : theme.colors.surface,
+                      borderRadius: theme.radii.md,
+                      paddingVertical: theme.spacing.xs,
+                      paddingHorizontal: theme.spacing.sm,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color:
+                          priorita === option
+                            ? theme.colors.onPrimary
+                            : theme.colors.text,
+                        ...theme.text.caption,
+                      }}
+                    >
+                      {priorityLabel[option]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <AppButton title="Salva" onPress={handleSave} />
+
+              <Pressable onPress={onClose} style={{ marginTop: theme.spacing.md }}>
+                <Text
+                  style={{
+                    color: theme.colors.textMuted,
+                    textAlign: "center",
+                    ...theme.text.link,
+                  }}
+                >
+                  Annulla
+                </Text>
+              </Pressable>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
+}
