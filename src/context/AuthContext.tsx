@@ -1,6 +1,11 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { User, users } from "../mocks/user.mock";
-import { register as registerUser } from "../services/user.service";
+import {
+  ProfileUpdate,
+  register as registerUser,
+  updatePassword as updateUserPassword,
+  updateProfile as updateUserProfile,
+} from "../services/user.service";
 
 type LoginPayload = {
   email: string;
@@ -14,6 +19,11 @@ type AuthContextType = {
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
+  updateProfile: (changes: ProfileUpdate) => Promise<void>;
+  updatePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
   logout: () => void;
 };
 
@@ -38,6 +48,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(newUser);
   };
 
+  const updateProfile = async (changes: ProfileUpdate) => {
+    if (!user) throw new Error("Utente non autenticato");
+    const updated = await updateUserProfile(user.id, changes);
+    setUser(updated);
+  };
+
+  const updatePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
+    if (!user) throw new Error("Utente non autenticato");
+    await updateUserPassword(user.email, currentPassword, newPassword);
+  };
+
   const logout = () => {
     setUser(null);
   };
@@ -48,6 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated: user ? true : false,
       login,
       register,
+      updateProfile,
+      updatePassword,
       logout,
     }),
     [user],

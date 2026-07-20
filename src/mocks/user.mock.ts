@@ -4,6 +4,10 @@ export type User = {
   password: string;
   name?: string;
   surname?: string;
+  phone?: string;
+  birthDate?: string;
+  profilePicture?: string;
+  bio?: string;
 };
 
 export const users: User[] = [

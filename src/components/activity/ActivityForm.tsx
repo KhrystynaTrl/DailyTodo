@@ -8,12 +8,14 @@ import {
   Text,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { Activity } from "../../mocks/activities.mock";
-import { formatDateInput, formatTimeInput } from "../../utils/date";
+import { formatTimeInput } from "../../utils/date";
 import { isRequired, isValidDate } from "../../utils/validators";
 import AppButton from "../ui/AppButton";
 import AppTextField from "../ui/AppTextField";
+import DateField from "../ui/DateField";
 
 type ActivityFormProps = {
   visible: boolean;
@@ -60,6 +62,7 @@ export default function ActivityForm({
   onClose,
 }: ActivityFormProps) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [titolo, setTitolo] = useState(emptyForm.titolo);
   const [titoloError, setTitoloError] = useState("");
@@ -225,14 +228,12 @@ export default function ActivityForm({
                 ))}
               </View>
 
-              <AppTextField
+              <DateField
                 placeholder="Data (GG/MM/AAAA)"
                 value={data}
-                onChangeText={(text) => setData(formatDateInput(text))}
+                onChangeText={setData}
                 onBlur={validateData}
                 error={dataError}
-                keyboardType="numeric"
-                maxLength={10}
               />
 
               <AppTextField
@@ -293,6 +294,7 @@ export default function ActivityForm({
               style={{
                 padding: theme.spacing.lg,
                 paddingTop: theme.spacing.sm,
+                paddingBottom: theme.spacing.lg + insets.bottom,
                 borderTopWidth: 1,
                 borderTopColor: theme.colors.border,
               }}

@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -131,7 +132,7 @@ export default function Home() {
               Ciao, {displayName}
             </Text>
           </View>
-          <Avatar label={initials} />
+          <Avatar label={initials} onPress={() => router.push("/profile")} />
         </View>
 
         <View

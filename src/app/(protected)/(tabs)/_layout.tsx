@@ -1,10 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../../context/ThemeContext";
 
 export default function TabsLayout() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -15,6 +17,12 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
+          height: 56 + insets.bottom,
+          paddingTop: 8,
+          paddingBottom: insets.bottom + 4,
+        },
+        tabBarLabelStyle: {
+          fontSize: theme.fontSize.sm,
         },
       }}
     >
@@ -43,9 +51,9 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <View
               style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
                 alignItems: "center",
                 justifyContent: "center",
                 backgroundColor: focused
@@ -55,7 +63,7 @@ export default function TabsLayout() {
             >
               <Ionicons
                 name="home"
-                size={22}
+                size={20}
                 color={focused ? theme.colors.onPrimary : theme.colors.text}
               />
             </View>
