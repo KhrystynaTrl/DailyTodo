@@ -7,21 +7,21 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import RecentActivityList from "../../components/activity/RecentActivityList";
-import TodoTodayCard from "../../components/activity/TodoTodayCard";
-import NextAppointmentCard from "../../components/appointments/NextAppointmentCard";
-import Avatar from "../../components/ui/Avatar";
-import ProgressBar from "../../components/ui/ProgressBar";
-import StatCard from "../../components/ui/StatCard";
-import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
-import { Activity } from "../../mocks/activities.mock";
-import { Appointment } from "../../mocks/appointments.mock";
-import { DailyStats } from "../../mocks/dailyStats.mock";
-import { getActivities } from "../../services/activities.service";
-import { getAppointments } from "../../services/appointments.service";
-import { getTodayStats } from "../../services/dailyStats.service";
-import { formatDate, isToday, parseDate } from "../../utils/date";
+import RecentActivityList from "../../../components/activity/RecentActivityList";
+import TodoTodayCard from "../../../components/activity/TodoTodayCard";
+import NextAppointmentCard from "../../../components/appointments/NextAppointmentCard";
+import Avatar from "../../../components/ui/Avatar";
+import ProgressBar from "../../../components/ui/ProgressBar";
+import StatCard from "../../../components/ui/StatCard";
+import { useAuth } from "../../../context/AuthContext";
+import { useTheme } from "../../../context/ThemeContext";
+import { Activity } from "../../../mocks/activities.mock";
+import { Appointment } from "../../../mocks/appointments.mock";
+import { DailyStats } from "../../../mocks/dailyStats.mock";
+import { getActivities } from "../../../services/activities.service";
+import { getAppointments } from "../../../services/appointments.service";
+import { getTodayStats } from "../../../services/dailyStats.service";
+import { formatDate, isToday, parseDate } from "../../../utils/date";
 
 export default function Home() {
   const { theme } = useTheme();

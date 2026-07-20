@@ -2,7 +2,7 @@ import { Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../../context/ThemeContext";
 
-export default function AppointmentsList() {
+export default function WeeklyStatistics() {
   const { theme } = useTheme();
 
   return (
@@ -18,7 +18,7 @@ export default function AppointmentsList() {
         }}
       >
         <Text style={{ color: theme.colors.text, ...theme.text.h2 }}>
-          Appuntamenti
+          Statistiche
         </Text>
         <Text
           style={{

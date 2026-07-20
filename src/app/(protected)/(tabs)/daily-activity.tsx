@@ -1,24 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ActivityCard from "../../components/activity/ActivityCard";
+import ActivityCard from "../../../components/activity/ActivityCard";
 import ActivityFilters, {
   CategoryFilter,
   StatusFilter,
-} from "../../components/activity/ActivityFilters";
-import ActivityForm from "../../components/activity/ActivityForm";
-import ConfirmationModal from "../../components/ui/ConfirmationModal";
-import EmptyState from "../../components/ui/EmptyState";
-import LoadingState from "../../components/ui/LoadingState";
-import { useTheme } from "../../context/ThemeContext";
-import { Activity } from "../../mocks/activities.mock";
+} from "../../../components/activity/ActivityFilters";
+import ActivityForm from "../../../components/activity/ActivityForm";
+import ConfirmationModal from "../../../components/ui/ConfirmationModal";
+import EmptyState from "../../../components/ui/EmptyState";
+import LoadingState from "../../../components/ui/LoadingState";
+import { useTheme } from "../../../context/ThemeContext";
+import { Activity } from "../../../mocks/activities.mock";
 import {
   addActivity,
   deleteActivity,
   getActivities,
   toggleActivityCompletata,
   updateActivity,
-} from "../../services/activities.service";
+} from "../../../services/activities.service";
 
 export default function DailyActivity() {
   const { theme } = useTheme();

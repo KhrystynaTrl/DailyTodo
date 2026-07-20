@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { Activity } from "../../mocks/activities.mock";
@@ -10,8 +10,18 @@ type TodoTodayCardProps = {
   activities: Activity[];
 };
 
+const PAGE_SIZE = 4;
+
 export default function TodoTodayCard({ activities }: TodoTodayCardProps) {
   const { theme } = useTheme();
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [activities]);
+
+  const visibleActivities = activities.slice(0, visibleCount);
+  const hasMore = activities.length > visibleCount;
 
   return (
     <Card style={{ marginBottom: theme.spacing.lg }}>
@@ -36,31 +46,51 @@ export default function TodoTodayCard({ activities }: TodoTodayCardProps) {
       {activities.length === 0 ? (
         <EmptyState message="Nessuna attività per oggi" />
       ) : (
-        activities.map((activity, index) => (
-          <Pressable
-            key={activity.id}
-            onPress={() => router.push("/daily-activity")}
-            style={{
-              paddingVertical: theme.spacing.sm,
-              borderBottomWidth: index < activities.length - 1 ? 1 : 0,
-              borderBottomColor: theme.colors.border,
-            }}
-          >
-            <Text style={{ color: theme.colors.text, ...theme.text.body }}>
-              {activity.titolo}
-            </Text>
-            {activity.ora ? (
+        <>
+          {visibleActivities.map((activity, index) => (
+            <Pressable
+              key={activity.id}
+              onPress={() => router.push("/daily-activity")}
+              style={{
+                paddingVertical: theme.spacing.sm,
+                borderBottomWidth:
+                  index < visibleActivities.length - 1 ? 1 : 0,
+                borderBottomColor: theme.colors.border,
+              }}
+            >
+              <Text style={{ color: theme.colors.text, ...theme.text.body }}>
+                {activity.titolo}
+              </Text>
+              {activity.ora ? (
+                <Text
+                  style={{
+                    color: theme.colors.textMuted,
+                    ...theme.text.caption,
+                  }}
+                >
+                  {activity.ora}
+                </Text>
+              ) : null}
+            </Pressable>
+          ))}
+
+          {hasMore ? (
+            <Pressable
+              onPress={() => setVisibleCount((count) => count + PAGE_SIZE)}
+              style={{ paddingTop: theme.spacing.sm }}
+            >
               <Text
                 style={{
-                  color: theme.colors.textMuted,
-                  ...theme.text.caption,
+                  color: theme.colors.primary,
+                  textAlign: "center",
+                  ...theme.text.link,
                 }}
               >
-                {activity.ora}
+                Carica altri
               </Text>
-            ) : null}
-          </Pressable>
-        ))
+            </Pressable>
+          ) : null}
+        </>
       )}
     </Card>
   );

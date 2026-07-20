@@ -137,16 +137,23 @@ export default function ActivityForm({
           justifyContent: "flex-end",
         }}
       >
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          style={{ maxHeight: "95%" }}
+        >
           <View
             style={{
               backgroundColor: theme.colors.background,
               borderTopLeftRadius: theme.radii.lg,
               borderTopRightRadius: theme.radii.lg,
-              maxHeight: "85%",
+              flexShrink: 1,
             }}
           >
-            <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
+            <ScrollView
+              style={{ flexShrink: 1 }}
+              contentContainerStyle={{ padding: theme.spacing.lg }}
+              keyboardShouldPersistTaps="handled"
+            >
               <Text
                 style={{
                   color: theme.colors.text,
@@ -280,10 +287,19 @@ export default function ActivityForm({
                   </Pressable>
                 ))}
               </View>
+            </ScrollView>
 
+            <View
+              style={{
+                padding: theme.spacing.lg,
+                paddingTop: theme.spacing.sm,
+                borderTopWidth: 1,
+                borderTopColor: theme.colors.border,
+              }}
+            >
               <AppButton title="Salva" onPress={handleSave} />
 
-              <Pressable onPress={onClose} style={{ marginTop: theme.spacing.md }}>
+              <Pressable onPress={onClose} style={{ marginTop: theme.spacing.sm }}>
                 <Text
                   style={{
                     color: theme.colors.textMuted,
@@ -294,7 +310,7 @@ export default function ActivityForm({
                   Annulla
                 </Text>
               </Pressable>
-            </ScrollView>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </View>
