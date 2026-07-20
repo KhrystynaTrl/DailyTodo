@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-    StyleSheet,
     Text,
     TextInput,
     TextInputProps,
@@ -14,67 +13,71 @@ type PasswordFieldProps = TextInputProps & {
   error?: string;
 };
 
-export default function PasswordField({
-  error,
-  style,
-  ...props
-}: PasswordFieldProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const { theme } = useTheme();
-  const { colors, spacing, radii } = theme;
+const PasswordField = React.forwardRef<TextInput, PasswordFieldProps>(
+  function PasswordField({ error, style, ...props }, ref) {
+    const [showPassword, setShowPassword] = useState(false);
+    const { theme } = useTheme();
+    const { colors, spacing, radii } = theme;
 
-  return (
-    <View style={theme.components.input.container}>
+    return (
       <View
-        style={[
-          styles.inputWrapper,
-          {
+        style={{
+          width: "75%" as const,
+          alignSelf: "center" as const,
+          marginBottom: spacing.sm + 2,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
             backgroundColor: colors.surface,
             borderRadius: radii.md,
             paddingHorizontal: spacing.md,
-          },
-        ]}
-      >
-        <TextInput
-          {...props}
-          style={[
-            styles.input,
-            { paddingVertical: spacing.md, color: colors.text },
-            style,
-          ]}
-          secureTextEntry={!showPassword}
-        />
-
-        <TouchableOpacity
-          onPress={() => setShowPassword((prev) => !prev)}
-          style={styles.eyeIcon}
+          }}
         >
-          <Ionicons
-            name={showPassword ? "eye-off-outline" : "eye-outline"}
-            size={theme.components.icon.sizes.md}
-            color={theme.components.icon.colorMuted}
+          <TextInput
+            ref={ref}
+            {...props}
+            style={[
+              {
+                flex: 1,
+                textAlign: "center" as const,
+                paddingLeft: 20,
+                paddingVertical: spacing.md,
+                color: colors.text,
+              },
+              style,
+            ]}
+            secureTextEntry={!showPassword}
           />
-        </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setShowPassword((prev) => !prev)}
+            style={{ padding: 4 }}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={22}
+              color={colors.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {error ? (
+          <Text
+            style={{
+              color: colors.error,
+              marginTop: spacing.xs,
+              ...theme.text.caption,
+            }}
+          >
+            {error}
+          </Text>
+        ) : null}
       </View>
+    );
+  },
+);
 
-      {error ? (
-        <Text style={theme.components.input.errorText}>{error}</Text>
-      ) : null}
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    textAlign: "center",
-    paddingLeft: 20,
-  },
-  eyeIcon: {
-    padding: 4,
-  },
-});
+export default PasswordField;

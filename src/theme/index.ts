@@ -1,31 +1,30 @@
-import { colorSchemes, palette } from "./colors";
-import createComponentStyles from "./components";
+import { darkColors, lightColors } from "./colors";
 import radii from "./radii";
-import shadowSchemes from "./shadows";
+import { darkShadow, lightShadow } from "./shadows";
 import spacing from "./spacing";
-import { BaseTheme } from "./types";
-import typography from "./typography";
-
-const buildTheme = (mode: "light" | "dark") => {
-  const base: BaseTheme = {
-    mode,
-    colors: colorSchemes[mode],
-    shadows: shadowSchemes[mode],
-    spacing,
-    typography,
-    radii,
-  };
-
-  return { ...base, components: createComponentStyles(base) };
-};
+import { fontSize, text } from "./typography";
 
 export const themes = {
-  light: buildTheme("light"),
-  dark: buildTheme("dark"),
+  light: {
+    mode: "light" as const,
+    colors: lightColors,
+    shadow: lightShadow,
+    spacing,
+    radii,
+    fontSize,
+    text,
+  },
+  dark: {
+    mode: "dark" as const,
+    colors: darkColors,
+    shadow: darkShadow,
+    spacing,
+    radii,
+    fontSize,
+    text,
+  },
 };
 
-export type Theme = ReturnType<typeof buildTheme>;
-export type { BaseTheme };
+export type Theme = (typeof themes)["light"] | (typeof themes)["dark"];
 
-export { colorSchemes, palette, radii, spacing, typography };
 export default themes.light;

@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+#Claude 
+CLAUDE.md
+.claude-context

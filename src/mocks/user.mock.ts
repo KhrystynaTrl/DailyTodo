@@ -2,6 +2,8 @@ export type User = {
   id: number;
   email: string;
   password: string;
+  name?: string;
+  surname?: string;
 };
 
 export const users: User[] = [
@@ -14,5 +16,10 @@ export const users: User[] = [
     id: 2,
     email: "annarossi@prova.it",
     password: "12345678",
+  },
+  {
+    id: 3,
+    email: "test@wellness.com",
+    password: "Password1234",
   },
 ];

@@ -1,15 +1,19 @@
 import React, { createContext, useContext, useMemo, useState } from "react";
 import { User, users } from "../mocks/user.mock";
+import { register as registerUser } from "../services/user.service";
 
 type LoginPayload = {
   email: string;
   password: string;
 };
 
+type RegisterPayload = Omit<User, "id">;
+
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   login: (payload: LoginPayload) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
 };
 
@@ -29,6 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     throw new Error("Credenziali non valide");
   };
 
+  const register = async (payload: RegisterPayload) => {
+    const newUser = await registerUser(payload);
+    setUser(newUser);
+  };
+
   const logout = () => {
     setUser(null);
   };
@@ -38,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       isAuthenticated: user ? true : false,
       login,
+      register,
       logout,
     }),
     [user],

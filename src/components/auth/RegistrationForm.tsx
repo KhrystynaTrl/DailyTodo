@@ -4,40 +4,67 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AuthHeader from "../../components/auth/AuthHeader";
-import AppButton from "../../components/ui/AppButton";
-import AppTextField from "../../components/ui/AppTextField";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import spacing from "../../theme/spacing";
-import { isValidEmail, minLength } from "../../utils/validators";
+import { isRequired, isValidEmail, minLength } from "../../utils/validators";
+import AppButton from "../ui/AppButton";
+import AppTextField from "../ui/AppTextField";
 import PasswordField from "../ui/PasswordField";
+import AuthHeader from "./AuthHeader";
 
-export default function LoginForm() {
-  const { login } = useAuth();
+export default function RegistrationForm() {
   const { theme } = useTheme();
+  const { register } = useAuth();
 
+  const [name, setName] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [surname, setSurname] = useState("");
+  const [surnameError, setSurnameError] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  const surnameRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
+
+  const validateName = () => {
+    if (!isRequired(name)) {
+      setNameError("Inserisci il tuo nome");
+      return false;
+    }
+    setNameError("");
+    return true;
+  };
+
+  const validateSurname = () => {
+    if (!isRequired(surname)) {
+      setSurnameError("Inserisci il tuo cognome");
+      return false;
+    }
+    setSurnameError("");
+    return true;
+  };
 
   const validateEmailAddress = () => {
     if (!isValidEmail(email)) {
       setEmailError("Inserisci un indirizzo email valido");
       return false;
     }
-
     setEmailError("");
     return true;
   };
@@ -47,26 +74,51 @@ export default function LoginForm() {
       setPasswordError("La password deve contenere almeno 8 caratteri");
       return false;
     }
-
     setPasswordError("");
     return true;
   };
 
-  const handleLogin = async () => {
+  const validateConfirmPassword = () => {
+    if (!isRequired(confirmPassword)) {
+      setConfirmPasswordError("Conferma la password");
+      return false;
+    }
+
+    if (confirmPassword !== password) {
+      setConfirmPasswordError("Le password non coincidono");
+      return false;
+    }
+
+    setConfirmPasswordError("");
+    return true;
+  };
+
+  const handleRegister = async () => {
     setSubmitError("");
 
+    const isNameValid = validateName();
+    const isSurnameValid = validateSurname();
     const isEmailValid = validateEmailAddress();
     const isPasswordValid = validatePassword();
+    const isConfirmPasswordValid = validateConfirmPassword();
 
-    if (!isEmailValid || !isPasswordValid) return;
+    if (
+      !isNameValid ||
+      !isSurnameValid ||
+      !isEmailValid ||
+      !isPasswordValid ||
+      !isConfirmPasswordValid
+    ) {
+      return;
+    }
 
     try {
       setIsLoading(true);
-      await login({ email, password });
+      await register({ name, surname, email, password });
       router.replace("/home");
     } catch (error) {
       setSubmitError(
-        error instanceof Error ? error.message : "Errore durante il login",
+        error instanceof Error ? error.message : "Errore durante la registrazione",
       );
     } finally {
       setIsLoading(false);
@@ -83,10 +135,32 @@ export default function LoginForm() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.form}>
+          <ScrollView contentContainerStyle={styles.form}>
             <AuthHeader />
 
             <AppTextField
+              placeholder="Nome"
+              value={name}
+              onChangeText={setName}
+              onBlur={validateName}
+              error={nameError}
+              returnKeyType="next"
+              onSubmitEditing={() => surnameRef.current?.focus()}
+            />
+
+            <AppTextField
+              ref={surnameRef}
+              placeholder="Cognome"
+              value={surname}
+              onChangeText={setSurname}
+              onBlur={validateSurname}
+              error={surnameError}
+              returnKeyType="next"
+              onSubmitEditing={() => emailRef.current?.focus()}
+            />
+
+            <AppTextField
+              ref={emailRef}
               placeholder="Email"
               value={email}
               onChangeText={setEmail}
@@ -105,8 +179,19 @@ export default function LoginForm() {
               onChangeText={setPassword}
               onBlur={validatePassword}
               error={passwordError}
+              returnKeyType="next"
+              onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+            />
+
+            <PasswordField
+              ref={confirmPasswordRef}
+              placeholder="Conferma password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              onBlur={validateConfirmPassword}
+              error={confirmPasswordError}
               returnKeyType="done"
-              onSubmitEditing={() => handleLogin()}
+              onSubmitEditing={() => handleRegister()}
             />
 
             {submitError ? (
@@ -121,32 +206,22 @@ export default function LoginForm() {
             ) : null}
 
             <AppButton
-              title="Accedi"
-              onPress={handleLogin}
+              title="Registrati"
+              onPress={handleRegister}
               loading={isLoading}
             />
 
-            <Pressable onPress={() => router.push("/forgot-password")}>
+            <Pressable onPress={() => router.back()}>
               <Text
                 style={[
                   { color: theme.colors.primary, ...theme.text.link },
                   styles.linkText,
                 ]}
               >
-                Password dimenticata? Clicca qui
+                Hai già un account? Accedi
               </Text>
             </Pressable>
-            <Pressable onPress={() => router.push("/register")}>
-              <Text
-                style={[
-                  { color: theme.colors.primary, ...theme.text.link },
-                  styles.linkText,
-                ]}
-              >
-                Registrati
-              </Text>
-            </Pressable>
-          </View>
+          </ScrollView>
         </SafeAreaView>
       </KeyboardAvoidingView>
     </Pressable>
@@ -159,11 +234,9 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     flex: 1,
-    justifyContent: "center",
   },
   safeArea: {
     flex: 1,
-    justifyContent: "center",
   },
   form: {
     padding: spacing.lg,

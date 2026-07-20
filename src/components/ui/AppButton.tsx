@@ -16,22 +16,38 @@ export default function AppButton({
   disabled = false,
 }: AppButtonProps) {
   const { theme } = useTheme();
+  const isDisabled = disabled || loading;
 
   return (
     <Pressable
       onPress={onPress}
-      disabled={disabled || loading}
+      disabled={isDisabled}
       style={({ pressed }) => [
-        theme.components.button.primary,
-        { marginTop: theme.spacing.sm + 2 },
-        pressed && theme.components.button.pressed,
-        (disabled || loading) && theme.components.button.disabled,
+        {
+          backgroundColor: theme.colors.primary,
+          borderRadius: theme.radii.md,
+          paddingVertical: theme.spacing.md + 2,
+          marginTop: theme.spacing.sm + 2,
+          width: "75%" as const,
+          alignSelf: "center" as const,
+          alignItems: "center" as const,
+          justifyContent: "center" as const,
+        },
+        (pressed || isDisabled) && { opacity: 0.7 },
       ]}
     >
       {loading ? (
         <ActivityIndicator color={theme.colors.onPrimary} />
       ) : (
-        <Text style={theme.components.button.textPrimary}>{title}</Text>
+        <Text
+          style={{
+            color: theme.colors.onPrimary,
+            textAlign: "center",
+            ...theme.text.button,
+          }}
+        >
+          {title}
+        </Text>
       )}
     </Pressable>
   );

@@ -19,7 +19,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [override, setOverride] = useState<ColorSchemeOverride>("system");
 
   const colorScheme: ColorScheme =
-    override === "system" ? systemScheme ?? "light" : override;
+    override === "system" ? (systemScheme ?? "light") : override;
 
   const value = useMemo(
     () => ({
