@@ -22,6 +22,7 @@ import { DailyStats } from "../../../mocks/dailyStats.mock";
 import { getActivities } from "../../../services/activities.service";
 import { getAppointments } from "../../../services/appointments.service";
 import { getTodayStats } from "../../../services/dailyStats.service";
+import { WATER_GOAL_ML, getWaterState } from "../../../services/water.service";
 import { formatDate, isToday, parseDate } from "../../../utils/date";
 
 export default function Home() {
@@ -29,6 +30,7 @@ export default function Home() {
   const { user } = useAuth();
 
   const [stats, setStats] = useState<DailyStats | null>(null);
+  const [waterMl, setWaterMl] = useState(0);
   const [todayActivities, setTodayActivities] = useState<Activity[]>([]);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(
@@ -38,13 +40,17 @@ export default function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [dailyStats, activities, appointments] = await Promise.all([
+    const [dailyStats, activities, appointments, waterState] = await Promise.all([
       getTodayStats(),
       getActivities(),
       getAppointments(),
+      getWaterState(),
     ]);
 
     setStats(dailyStats);
+    setWaterMl(
+      waterState.entries.reduce((sum, entry) => sum + entry.quantita, 0),
+    );
 
     setTodayActivities(
       activities.filter(
@@ -142,14 +148,8 @@ export default function Home() {
             marginBottom: theme.spacing.lg,
           }}
         >
-          <StatCard
-            label="Acqua"
-            value={`${stats?.waterMl ?? 0} ml`}
-            style={{ flex: 1 }}
-          >
-            <ProgressBar
-              progress={(stats?.waterMl ?? 0) / (stats?.waterGoalMl ?? 1)}
-            />
+          <StatCard label="Acqua" value={`${waterMl} ml`} style={{ flex: 1 }}>
+            <ProgressBar progress={waterMl / WATER_GOAL_ML} />
           </StatCard>
           <StatCard
             label="Passi"

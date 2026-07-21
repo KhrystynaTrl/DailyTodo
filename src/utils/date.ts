@@ -15,6 +15,13 @@ export const isToday = (value: string): boolean => {
   return value === formatDate(new Date());
 };
 
+export const formatTime = (date: Date): string => {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+};
+
 export const formatDateInput = (raw: string): string => {
   const digits = raw.replace(/\D/g, "").slice(0, 8);
   const day = digits.slice(0, 2);
