@@ -26,8 +26,11 @@ const priorityLabel: Record<Activity["priorita"], string> = {
   alta: "Alta",
 };
 
-const priorityColor: Record<Activity["priorita"], "default" | "warning" | "error"> = {
-  bassa: "default",
+const priorityColor: Record<
+  Activity["priorita"],
+  "success" | "warning" | "error"
+> = {
+  bassa: "success",
   media: "warning",
   alta: "error",
 };
@@ -66,12 +69,21 @@ export default function ActivityCard({
   return (
     <Card variant="flat" style={{ marginBottom: theme.spacing.sm }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
-        <Pressable onPress={onToggle} style={{ marginRight: theme.spacing.sm, marginTop: 2 }}>
+        <Pressable
+          onPress={onToggle}
+          style={{ marginRight: theme.spacing.sm, marginTop: 2 }}
+        >
           <Animated.View style={{ transform: [{ scale }] }}>
             <Ionicons
-              name={activity.completata ? "checkmark-circle" : "ellipse-outline"}
+              name={
+                activity.completata ? "checkmark-circle" : "ellipse-outline"
+              }
               size={24}
-              color={activity.completata ? theme.colors.primary : theme.colors.textMuted}
+              color={
+                activity.completata
+                  ? theme.colors.success
+                  : theme.colors.textMuted
+              }
             />
           </Animated.View>
         </Pressable>
@@ -118,10 +130,18 @@ export default function ActivityCard({
 
         <View style={{ flexDirection: "row", gap: theme.spacing.sm }}>
           <Pressable onPress={onEdit} hitSlop={8}>
-            <Ionicons name="create-outline" size={20} color={theme.colors.textMuted} />
+            <Ionicons
+              name="create-outline"
+              size={20}
+              color={theme.colors.textMuted}
+            />
           </Pressable>
           <Pressable onPress={onDelete} hitSlop={8}>
-            <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+            <Ionicons
+              name="trash-outline"
+              size={20}
+              color={theme.colors.error}
+            />
           </Pressable>
         </View>
       </View>

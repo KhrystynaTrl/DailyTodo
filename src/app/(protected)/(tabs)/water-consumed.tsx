@@ -167,7 +167,7 @@ export default function WaterConsumed() {
             </Text>
             <Text
               style={{
-                color: theme.colors.textMuted,
+                color: theme.colors.text,
                 marginTop: theme.spacing.xs,
                 ...theme.text.caption,
               }}

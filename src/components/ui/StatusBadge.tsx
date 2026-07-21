@@ -4,7 +4,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 type StatusBadgeProps = {
   label: string;
-  color?: "default" | "primary" | "warning" | "error";
+  color?: "default" | "primary" | "success" | "warning" | "error";
 };
 
 export default function StatusBadge({
@@ -16,11 +16,13 @@ export default function StatusBadge({
   const backgroundColor =
     color === "primary"
       ? theme.colors.primary
-      : color === "warning"
-        ? theme.colors.warning
-        : color === "error"
-          ? theme.colors.error
-          : theme.colors.surface;
+      : color === "success"
+        ? theme.colors.success
+        : color === "warning"
+          ? theme.colors.warning
+          : color === "error"
+            ? theme.colors.error
+            : theme.colors.surface;
 
   const textColor =
     color === "default" ? theme.colors.textMuted : theme.colors.onPrimary;
