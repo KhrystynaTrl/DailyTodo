@@ -41,8 +41,19 @@ const formatNumber = (n: number): string =>
 const sumMetric = (week: WeekStats, key: MetricKey): number =>
   week.days.reduce((total, day) => total + day[key], 0);
 
-const avgMetric = (week: WeekStats, key: MetricKey): number =>
-  Math.round(sumMetric(week, key) / week.days.length);
+// Giorni "effettivi": quelli con almeno un dato. I giorni futuri della settimana
+// corrente sono azzerati dal service (tutte le metriche a 0), quindi restano
+// esclusi dalla media senza bisogno di conoscere la data qui.
+const activeDaysCount = (week: WeekStats): number =>
+  week.days.filter(
+    (day) =>
+      day.steps + day.activityMinutes + day.water + day.completedActivities > 0,
+  ).length;
+
+const avgMetric = (week: WeekStats, key: MetricKey): number => {
+  const days = activeDaysCount(week);
+  return days === 0 ? 0 : Math.round(sumMetric(week, key) / days);
+};
 
 const totalDisplay = (key: MetricKey, total: number): string =>
   key === "water" ? `${(total / 1000).toFixed(1)} L` : formatNumber(total);
@@ -95,7 +106,7 @@ export default function WeeklyStatistics() {
 
   return (
     <SafeAreaView
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>

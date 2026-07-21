@@ -3,8 +3,6 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
-  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -15,7 +13,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import RecentActivityList from "../../../components/activity/RecentActivityList";
 import TodoTodayCard from "../../../components/activity/TodoTodayCard";
 import NextAppointmentCard from "../../../components/appointments/NextAppointmentCard";
-import Avatar from "../../../components/ui/Avatar";
 import ProgressBar from "../../../components/ui/ProgressBar";
 import StatCard from "../../../components/ui/StatCard";
 import { useAuth } from "../../../context/AuthContext";
@@ -26,9 +23,8 @@ import { DailyStats } from "../../../mocks/dailyStats.mock";
 import { getActivities } from "../../../services/activities.service";
 import { getAppointments } from "../../../services/appointments.service";
 import { getTodayStats } from "../../../services/dailyStats.service";
-import { getUnreadCount } from "../../../services/notifications.service";
 import { WATER_GOAL_ML, getWaterState } from "../../../services/water.service";
-import { formatDate, isToday, parseDate } from "../../../utils/date";
+import { isToday, parseDate } from "../../../utils/date";
 
 export default function Home() {
   const { theme } = useTheme();
@@ -41,10 +37,8 @@ export default function Home() {
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(
     null,
   );
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [menuVisible, setMenuVisible] = useState(false);
 
   const loadData = useCallback(async () => {
     const [dailyStats, activities, appointments, waterState] =
@@ -92,7 +86,6 @@ export default function Home() {
   // schermo intero compare solo al caricamento iniziale.
   useFocusEffect(
     useCallback(() => {
-      getUnreadCount().then(setUnreadCount);
       loadData().finally(() => {
         if (isFirstLoad.current) {
           setIsLoading(false);
@@ -107,12 +100,6 @@ export default function Home() {
     await loadData();
     setIsRefreshing(false);
   };
-
-  const displayName = user?.name ?? user?.email.split("@")[0] ?? "Utente";
-  const initials =
-    user?.name && user?.surname
-      ? `${user.name[0]}${user.surname[0]}`.toUpperCase()
-      : (displayName[0]?.toUpperCase() ?? "?");
 
   // Saluto personalizzato solo se il profilo ha un nome: altrimenti mostriamo
   // solo "Ciao" (evitiamo la mail troncata, che risulterebbe troppo lunga).
@@ -135,7 +122,7 @@ export default function Home() {
 
   return (
     <SafeAreaView
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
       <ScrollView
@@ -148,83 +135,6 @@ export default function Home() {
           />
         }
       >
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: theme.spacing.md,
-          }}
-        >
-          <Image
-            source={require("../../../assets/images/logo.png")}
-            style={{ width: 120, height: 30 }}
-            resizeMode="contain"
-          />
-
-          {/* Data centrata nella riga, dietro logo e icone (non intercetta i tocchi) */}
-          <Text
-            pointerEvents="none"
-            style={{
-              position: "absolute",
-              left: 0,
-              right: 0,
-              textAlign: "center",
-              color: theme.colors.textMuted,
-              ...theme.text.caption,
-            }}
-          >
-            {formatDate(new Date())}
-          </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: theme.spacing.md,
-            }}
-          >
-            <Pressable
-              onPress={() => router.push("/notifications")}
-              hitSlop={8}
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={26}
-                color={theme.colors.text}
-              />
-              {unreadCount > 0 ? (
-                <View
-                  style={{
-                    position: "absolute",
-                    top: -6,
-                    right: -6,
-                    minWidth: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    paddingHorizontal: 4,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: theme.colors.error,
-                    borderWidth: 2,
-                    borderColor: theme.colors.background,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: theme.colors.onPrimary,
-                      fontSize: 10,
-                      fontWeight: "700",
-                    }}
-                  >
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </Text>
-                </View>
-              ) : null}
-            </Pressable>
-            <Avatar label={initials} onPress={() => setMenuVisible(true)} />
-          </View>
-        </View>
-
         <Text
           style={{
             color: theme.colors.text,
@@ -293,87 +203,6 @@ export default function Home() {
         <NextAppointmentCard appointment={nextAppointment} />
         <RecentActivityList activities={recentActivities} />
       </ScrollView>
-
-      {/* Menu Profilo / Impostazioni (apertura dall'avatar in alto a destra) */}
-      <Modal
-        visible={menuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <Pressable
-          onPress={() => setMenuVisible(false)}
-          style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.3)" }}
-        >
-          <View
-            style={{
-              position: "absolute",
-              top: 96,
-              right: theme.spacing.lg,
-              minWidth: 200,
-              backgroundColor: theme.colors.surface,
-              borderRadius: theme.radii.lg,
-              borderWidth: 1,
-              borderColor: theme.colors.border,
-              overflow: "hidden",
-              ...theme.shadow,
-            }}
-          >
-            <MenuItem
-              icon="person-outline"
-              label="Profilo"
-              onPress={() => {
-                setMenuVisible(false);
-                router.push("/profile");
-              }}
-            />
-            <View
-              style={{ height: 1, backgroundColor: theme.colors.border }}
-            />
-            <MenuItem
-              icon="settings-outline"
-              label="Impostazioni"
-              onPress={() => {
-                setMenuVisible(false);
-                router.push("/preferences");
-              }}
-            />
-          </View>
-        </Pressable>
-      </Modal>
     </SafeAreaView>
-  );
-}
-
-function MenuItem({
-  icon,
-  label,
-  onPress,
-}: {
-  icon: React.ComponentProps<typeof Ionicons>["name"];
-  label: string;
-  onPress: () => void;
-}) {
-  const { theme } = useTheme();
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        {
-          flexDirection: "row",
-          alignItems: "center",
-          gap: theme.spacing.md,
-          paddingVertical: theme.spacing.md,
-          paddingHorizontal: theme.spacing.lg,
-        },
-        pressed && { backgroundColor: theme.colors.surfaceAlt },
-      ]}
-    >
-      <Ionicons name={icon} size={20} color={theme.colors.primary} />
-      <Text style={{ color: theme.colors.text, ...theme.text.body }}>
-        {label}
-      </Text>
-    </Pressable>
   );
 }

@@ -120,7 +120,7 @@ export default function DailyActivity() {
   if (isLoading) {
     return (
       <SafeAreaView
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
         <LoadingState message="Caricamento attività..." />
@@ -130,7 +130,7 @@ export default function DailyActivity() {
 
   return (
     <SafeAreaView
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>

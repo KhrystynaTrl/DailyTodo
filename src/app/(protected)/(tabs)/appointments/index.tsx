@@ -105,7 +105,7 @@ export default function AppointmentsList() {
 
   return (
     <SafeAreaView
-      edges={["top", "left", "right"]}
+      edges={["left", "right"]}
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
