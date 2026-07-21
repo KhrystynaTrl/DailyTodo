@@ -95,6 +95,7 @@ export default function LoginForm() {
               autoCapitalize="none"
               keyboardType="email-address"
               returnKeyType="next"
+              blurOnSubmit={false}
               onSubmitEditing={() => passwordRef.current?.focus()}
             />
 

@@ -8,6 +8,11 @@ export default function TabsLayout() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
+  // Su alcuni telefoni (es. Android con navigazione a gesti) insets.bottom è
+  // molto piccolo o 0, e la tab bar finisce sotto i tasti di sistema: teniamo
+  // uno spazio minimo garantito.
+  const bottomInset = Math.max(insets.bottom, 12);
+
   return (
     <Tabs
       screenOptions={{
@@ -17,9 +22,9 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
-          height: 56 + insets.bottom,
+          height: 56 + bottomInset,
           paddingTop: 8,
-          paddingBottom: insets.bottom + 4,
+          paddingBottom: bottomInset,
         },
         tabBarLabelStyle: {
           fontSize: theme.fontSize.sm,

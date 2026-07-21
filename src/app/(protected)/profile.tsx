@@ -13,12 +13,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileForm from "../../components/profile/ProfileForm";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
 export default function Profile() {
   const { theme } = useTheme();
+  const { logout } = useAuth();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [exitConfirmVisible, setExitConfirmVisible] = useState(false);
+  const [logoutConfirmVisible, setLogoutConfirmVisible] = useState(false);
 
   const hasUnsavedChangesRef = useRef(hasUnsavedChanges);
   hasUnsavedChangesRef.current = hasUnsavedChanges;
@@ -76,6 +79,30 @@ export default function Profile() {
 
         <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
           <ProfileForm onDirtyChange={setHasUnsavedChanges} />
+
+          <Pressable
+            onPress={() => setLogoutConfirmVisible(true)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: theme.spacing.sm,
+              marginTop: theme.spacing.lg,
+              paddingVertical: theme.spacing.md,
+              borderRadius: theme.radii.md,
+              borderWidth: 1,
+              borderColor: theme.colors.error,
+            }}
+          >
+            <Ionicons
+              name="log-out-outline"
+              size={20}
+              color={theme.colors.error}
+            />
+            <Text style={{ color: theme.colors.error, ...theme.text.button }}>
+              Esci
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -90,6 +117,19 @@ export default function Profile() {
           router.back();
         }}
         onCancel={() => setExitConfirmVisible(false)}
+      />
+
+      <ConfirmationModal
+        visible={logoutConfirmVisible}
+        title="Vuoi uscire?"
+        message="Verrai disconnesso e riportato alla schermata di accesso."
+        confirmLabel="Esci"
+        cancelLabel="Annulla"
+        onConfirm={() => {
+          setLogoutConfirmVisible(false);
+          logout();
+        }}
+        onCancel={() => setLogoutConfirmVisible(false)}
       />
     </SafeAreaView>
   );

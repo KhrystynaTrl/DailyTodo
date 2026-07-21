@@ -68,9 +68,16 @@ export default function WaterConsumed() {
   };
 
   const handleAddCustom = async () => {
+    // Se il campo è vuoto l'utente non ha inserito una quantità personalizzata:
+    // non mostriamo alcun errore, semplicemente non aggiungiamo nulla.
+    if (!customAmount.trim()) {
+      setCustomAmountError("");
+      return;
+    }
+
     const parsed = Number(customAmount.replace(",", "."));
 
-    if (!customAmount || Number.isNaN(parsed) || parsed <= 0) {
+    if (Number.isNaN(parsed) || parsed <= 0) {
       setCustomAmountError("Inserisci una quantità valida maggiore di zero");
       return;
     }
