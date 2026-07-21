@@ -9,6 +9,7 @@ import ActivityFilters, {
 import ActivityForm from "../../../components/activity/ActivityForm";
 import ConfirmationModal from "../../../components/ui/ConfirmationModal";
 import EmptyState from "../../../components/ui/EmptyState";
+import FadeInView from "../../../components/ui/FadeInView";
 import LoadingState from "../../../components/ui/LoadingState";
 import { useTheme } from "../../../context/ThemeContext";
 import { Activity } from "../../../mocks/activities.mock";
@@ -142,14 +143,15 @@ export default function DailyActivity() {
         {filteredActivities.length === 0 ? (
           <EmptyState message="Nessuna attività trovata" />
         ) : (
-          filteredActivities.map((activity) => (
-            <ActivityCard
-              key={activity.id}
-              activity={activity}
-              onToggle={() => handleToggle(activity)}
-              onEdit={() => handleEdit(activity)}
-              onDelete={() => setDeleteTarget(activity)}
-            />
+          filteredActivities.map((activity, index) => (
+            <FadeInView key={activity.id} index={index}>
+              <ActivityCard
+                activity={activity}
+                onToggle={() => handleToggle(activity)}
+                onEdit={() => handleEdit(activity)}
+                onDelete={() => setDeleteTarget(activity)}
+              />
+            </FadeInView>
           ))
         )}
       </ScrollView>

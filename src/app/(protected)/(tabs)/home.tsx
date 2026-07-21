@@ -224,6 +224,38 @@ export default function Home() {
           />
         </View>
 
+        <Pressable
+          onPress={() => router.push("/motivation")}
+          style={({ pressed }) => [
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              gap: theme.spacing.md,
+              backgroundColor: theme.colors.surface,
+              borderRadius: theme.radii.lg,
+              padding: theme.spacing.lg,
+              marginBottom: theme.spacing.lg,
+              ...theme.shadow,
+            },
+            pressed && { opacity: 0.7 },
+          ]}
+        >
+          <Ionicons name="sparkles" size={22} color={theme.colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: theme.colors.text, ...theme.text.body, fontWeight: "700" }}>
+              Frase del giorno
+            </Text>
+            <Text style={{ color: theme.colors.textMuted, ...theme.text.caption }}>
+              Lasciati ispirare con una frase motivazionale
+            </Text>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={theme.colors.textMuted}
+          />
+        </Pressable>
+
         <TodoTodayCard activities={todayActivities} />
         <NextAppointmentCard appointment={nextAppointment} />
         <RecentActivityList activities={recentActivities} />

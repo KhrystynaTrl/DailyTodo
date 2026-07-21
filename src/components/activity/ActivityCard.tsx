@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { Pressable, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Pressable, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { Activity } from "../../mocks/activities.mock";
 import Card from "../ui/Card";
@@ -40,15 +40,40 @@ export default function ActivityCard({
 }: ActivityCardProps) {
   const { theme } = useTheme();
 
+  // "Pop" del check quando cambia lo stato (salta la prima render).
+  const scale = useRef(new Animated.Value(1)).current;
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    Animated.sequence([
+      Animated.timing(scale, {
+        toValue: 1.35,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        friction: 4,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [activity.completata, scale]);
+
   return (
     <Card variant="flat" style={{ marginBottom: theme.spacing.sm }}>
       <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
         <Pressable onPress={onToggle} style={{ marginRight: theme.spacing.sm, marginTop: 2 }}>
-          <Ionicons
-            name={activity.completata ? "checkmark-circle" : "ellipse-outline"}
-            size={24}
-            color={activity.completata ? theme.colors.primary : theme.colors.textMuted}
-          />
+          <Animated.View style={{ transform: [{ scale }] }}>
+            <Ionicons
+              name={activity.completata ? "checkmark-circle" : "ellipse-outline"}
+              size={24}
+              color={activity.completata ? theme.colors.primary : theme.colors.textMuted}
+            />
+          </Animated.View>
         </Pressable>
 
         <View style={{ flex: 1 }}>
