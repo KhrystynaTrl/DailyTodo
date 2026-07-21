@@ -31,6 +31,7 @@ const AppTextField = React.forwardRef<TextInput, AppTextFieldProps>(
       >
         <TextInput
           ref={ref}
+          placeholderTextColor={theme.colors.textMuted}
           {...props}
           style={[
             {

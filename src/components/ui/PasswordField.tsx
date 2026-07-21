@@ -38,6 +38,7 @@ const PasswordField = React.forwardRef<TextInput, PasswordFieldProps>(
         >
           <TextInput
             ref={ref}
+            placeholderTextColor={colors.textMuted}
             {...props}
             style={[
               {

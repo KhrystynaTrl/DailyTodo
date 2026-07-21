@@ -2,7 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Modal, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import {
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  Switch,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Card from "../../components/ui/Card";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
@@ -280,19 +288,15 @@ export default function PreferencesScreen() {
               alignItems: "center",
             }}
           >
-            <View
+            <Image
+              source={require("../../assets/images/logo.png")}
               style={{
-                width: 56,
-                height: 56,
-                borderRadius: 28,
-                backgroundColor: theme.colors.primary,
-                alignItems: "center",
-                justifyContent: "center",
+                width: 64,
+                height: 64,
                 marginBottom: theme.spacing.md,
               }}
-            >
-              <Ionicons name="leaf" size={28} color={theme.colors.onPrimary} />
-            </View>
+              resizeMode="contain"
+            />
             <Text
               style={{
                 color: theme.colors.text,

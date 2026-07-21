@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs, usePathname } from "expo-router";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TopBar from "../../../components/ui/TopBar";
 import { useTheme } from "../../../context/ThemeContext";
@@ -35,13 +35,18 @@ export default function TabsLayout() {
           headerShown: false,
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textMuted,
-          tabBarStyle: {
-            backgroundColor: theme.colors.surface,
-            borderTopColor: theme.colors.border,
-            height: 56 + bottomInset,
-            paddingTop: 6,
-            paddingBottom: bottomInset,
-          },
+          // Sul web la navigazione tra le sezioni avviene dalla TopBar (menu
+          // orizzontale), quindi nascondiamo la tab bar in stile mobile.
+          tabBarStyle:
+            Platform.OS === "web"
+              ? { display: "none" }
+              : {
+                  backgroundColor: theme.colors.surface,
+                  borderTopColor: theme.colors.border,
+                  height: 56 + bottomInset,
+                  paddingTop: 6,
+                  paddingBottom: bottomInset,
+                },
           tabBarLabelStyle: {
             fontSize: theme.fontSize.sm,
           },

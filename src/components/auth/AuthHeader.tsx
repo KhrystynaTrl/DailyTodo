@@ -14,7 +14,7 @@ export default function AuthHeader() {
       />
       <Text
         style={[
-          theme.text.h2,
+          theme.text.body,
           { color: theme.colors.primary, textAlign: "center" },
         ]}
       >

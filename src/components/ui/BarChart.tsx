@@ -1,5 +1,5 @@
-import React from "react";
-import { Text, View } from "react-native";
+import React, { useState } from "react";
+import { LayoutChangeEvent, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 
 type BarChartProps = {
@@ -7,6 +7,7 @@ type BarChartProps = {
   labels: string[];
   color: string;
   height?: number;
+  fill?: boolean;
   average?: number;
   formatValue?: (value: number) => string;
 };
@@ -16,19 +17,34 @@ export default function BarChart({
   labels,
   color,
   height = 160,
+  fill = false,
   average,
   formatValue = (v) => String(v),
 }: BarChartProps) {
   const { theme } = useTheme();
 
+  const [measuredHeight, setMeasuredHeight] = useState(height);
+  const chartHeight = fill ? measuredHeight : height;
+
   const max = Math.max(...data, 1);
   const averageBottom =
-    average !== undefined ? (average / max) * height : undefined;
+    average !== undefined ? (average / max) * chartHeight : undefined;
+
+  const handleChartAreaLayout = (event: LayoutChangeEvent) => {
+    if (fill) setMeasuredHeight(event.nativeEvent.layout.height);
+  };
 
   return (
-    <View>
+    <View style={fill ? { flex: 1 } : undefined}>
       {/* Area del grafico */}
-      <View style={{ height, position: "relative" }}>
+      <View
+        style={
+          fill
+            ? { flex: 1, position: "relative" }
+            : { height: chartHeight, position: "relative" }
+        }
+        onLayout={handleChartAreaLayout}
+      >
         {/* Linea della media settimanale */}
         {averageBottom !== undefined ? (
           <View
@@ -48,15 +64,19 @@ export default function BarChart({
           style={{
             flexDirection: "row",
             alignItems: "flex-end",
-            height,
+            height: chartHeight,
           }}
         >
           {data.map((value, index) => {
-            const barHeight = Math.max((value / max) * height, 2);
+            const barHeight = Math.max((value / max) * chartHeight, 2);
             return (
               <View
                 key={index}
-                style={{ flex: 1, alignItems: "center", justifyContent: "flex-end" }}
+                style={{
+                  flex: 1,
+                  alignItems: "center",
+                  justifyContent: "flex-end",
+                }}
               >
                 <Text
                   style={{

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BarChart from "../../../components/ui/BarChart";
 import Card from "../../../components/ui/Card";
@@ -109,14 +109,14 @@ export default function WeeklyStatistics() {
       edges={["left", "right"]}
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
-      <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
+      <View style={{ flex: 1, padding: theme.spacing.lg }}>
         <Text style={{ color: theme.colors.text, ...theme.text.h1 }}>
           Statistiche
         </Text>
         <Text
           style={{
             color: theme.colors.textMuted,
-            marginBottom: theme.spacing.lg,
+            marginBottom: theme.spacing.md,
             ...theme.text.caption,
           }}
         >
@@ -128,7 +128,7 @@ export default function WeeklyStatistics() {
           style={{
             flexDirection: "row",
             gap: theme.spacing.sm,
-            marginBottom: theme.spacing.lg,
+            marginBottom: theme.spacing.md,
           }}
         >
           {(["current", "previous"] as WeekId[]).map((id) => {
@@ -167,7 +167,7 @@ export default function WeeklyStatistics() {
         {isEmpty ? (
           <EmptyState message="Nessun dato disponibile per questa settimana" />
         ) : (
-          <>
+          <View style={{ flex: 1 }}>
             {/* Card riepilogative — toccale per filtrare il grafico per tipologia */}
             <Text
               style={{
@@ -184,7 +184,7 @@ export default function WeeklyStatistics() {
                 flexDirection: "row",
                 flexWrap: "wrap",
                 gap: theme.spacing.sm,
-                marginBottom: theme.spacing.lg,
+                marginBottom: theme.spacing.md,
               }}
             >
               {METRICS.map((m) => {
@@ -214,6 +214,7 @@ export default function WeeklyStatistics() {
                         style={{
                           flexDirection: "row",
                           alignItems: "center",
+                          justifyContent: "center",
                           gap: theme.spacing.xs,
                           marginBottom: theme.spacing.sm,
                         }}
@@ -225,7 +226,6 @@ export default function WeeklyStatistics() {
                         />
                         <Text
                           style={{
-                            flex: 1,
                             color: theme.colors.textMuted,
                             ...theme.text.caption,
                           }}
@@ -235,7 +235,13 @@ export default function WeeklyStatistics() {
                         </Text>
                       </View>
 
-                      <Text style={{ color: theme.colors.text, ...theme.text.h2 }}>
+                      <Text
+                        style={{
+                          color: theme.colors.text,
+                          textAlign: "center",
+                          ...theme.text.h2,
+                        }}
+                      >
                         {formatNumber(avg)}
                         {m.unit ? (
                           <Text style={{ ...theme.text.caption }}> {m.unit}</Text>
@@ -244,6 +250,7 @@ export default function WeeklyStatistics() {
                       <Text
                         style={{
                           color: theme.colors.textMuted,
+                          textAlign: "center",
                           ...theme.text.caption,
                           fontSize: 12,
                         }}
@@ -255,7 +262,8 @@ export default function WeeklyStatistics() {
                         style={{
                           flexDirection: "row",
                           alignItems: "center",
-                          justifyContent: "space-between",
+                          justifyContent: "center",
+                          gap: theme.spacing.xs,
                           marginTop: theme.spacing.sm,
                         }}
                       >
@@ -266,7 +274,7 @@ export default function WeeklyStatistics() {
                             fontSize: 12,
                           }}
                         >
-                          tot {totalDisplay(m.key, total)}
+                          · tot {totalDisplay(m.key, total)}
                         </Text>
                       </View>
                     </Card>
@@ -276,11 +284,11 @@ export default function WeeklyStatistics() {
             </View>
 
             {/* Grafico della metrica selezionata */}
-            <Card variant="base">
+            <Card variant="base" style={{ flex: 1 }}>
               <Text
                 style={{
                   color: theme.colors.text,
-                  marginBottom: theme.spacing.md,
+                  marginBottom: theme.spacing.sm,
                   ...theme.text.h2,
                 }}
               >
@@ -293,6 +301,7 @@ export default function WeeklyStatistics() {
                 color={theme.colors[activeMetric.colorKey]}
                 average={metricAverage}
                 formatValue={formatNumber}
+                fill
               />
 
               {/* Legenda */}
@@ -300,7 +309,7 @@ export default function WeeklyStatistics() {
                 style={{
                   flexDirection: "row",
                   gap: theme.spacing.lg,
-                  marginTop: theme.spacing.md,
+                  marginTop: theme.spacing.sm,
                 }}
               >
                 <View
@@ -349,9 +358,9 @@ export default function WeeklyStatistics() {
                 </View>
               </View>
             </Card>
-          </>
+          </View>
         )}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }

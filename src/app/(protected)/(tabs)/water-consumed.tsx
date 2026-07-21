@@ -68,8 +68,6 @@ export default function WaterConsumed() {
   };
 
   const handleAddCustom = async () => {
-    // Se il campo è vuoto l'utente non ha inserito una quantità personalizzata:
-    // non mostriamo alcun errore, semplicemente non aggiungiamo nulla.
     if (!customAmount.trim()) {
       setCustomAmountError("");
       return;
@@ -104,7 +102,9 @@ export default function WaterConsumed() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
         <LoadingState message="Caricamento..." />
       </SafeAreaView>
     );
@@ -128,7 +128,9 @@ export default function WaterConsumed() {
             Acqua
           </Text>
           <Pressable onPress={handleReset}>
-            <Text style={{ color: theme.colors.textMuted, ...theme.text.caption }}>
+            <Text
+              style={{ color: theme.colors.textMuted, ...theme.text.caption }}
+            >
               Reset giornata (demo)
             </Text>
           </Pressable>
@@ -214,7 +216,9 @@ export default function WaterConsumed() {
                 opacity: isSaving ? 0.6 : 1,
               }}
             >
-              <Text style={{ color: theme.colors.onPrimary, ...theme.text.button }}>
+              <Text
+                style={{ color: theme.colors.onPrimary, ...theme.text.button }}
+              >
                 +{amount} ml
               </Text>
             </Pressable>
@@ -228,7 +232,11 @@ export default function WaterConsumed() {
           error={customAmountError}
           keyboardType="numeric"
         />
-        <AppButton title="Aggiungi" onPress={handleAddCustom} loading={isSaving} />
+        <AppButton
+          title="Aggiungi"
+          onPress={handleAddCustom}
+          loading={isSaving}
+        />
 
         <Text
           style={{
@@ -266,13 +274,20 @@ export default function WaterConsumed() {
                   {entry.quantita} ml
                 </Text>
                 <Text
-                  style={{ color: theme.colors.textMuted, ...theme.text.caption }}
+                  style={{
+                    color: theme.colors.textMuted,
+                    ...theme.text.caption,
+                  }}
                 >
                   {entry.orario}
                 </Text>
               </View>
               <Pressable onPress={() => handleRemove(entry.id)} hitSlop={8}>
-                <Ionicons name="trash-outline" size={20} color={theme.colors.error} />
+                <Ionicons
+                  name="trash-outline"
+                  size={20}
+                  color={theme.colors.error}
+                />
               </Pressable>
             </Card>
           ))
