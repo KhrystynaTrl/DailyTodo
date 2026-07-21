@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { User, users } from "../mocks/user.mock";
 import {
   ProfileUpdate,
@@ -6,6 +12,11 @@ import {
   updatePassword as updateUserPassword,
   updateProfile as updateUserProfile,
 } from "../services/user.service";
+import {
+  clearSession,
+  loadSession,
+  saveSession,
+} from "../storage/session.storage";
 
 type LoginPayload = {
   email: string;
@@ -17,6 +28,7 @@ type RegisterPayload = Omit<User, "id">;
 type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
+  isHydrating: boolean;
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   updateProfile: (changes: ProfileUpdate) => Promise<void>;
@@ -31,6 +43,16 @@ const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isHydrating, setIsHydrating] = useState(true);
+
+  // Ripristina la sessione simulata salvata al precedente avvio.
+  useEffect(() => {
+    loadSession()
+      .then((saved) => {
+        if (saved) setUser(saved);
+      })
+      .finally(() => setIsHydrating(false));
+  }, []);
 
   const login = async ({ email, password }: LoginPayload) => {
     const userFound = users.filter(
@@ -38,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
     if (userFound.length > 0) {
       setUser(userFound[0]);
+      await saveSession(userFound[0]);
       return;
     }
     throw new Error("Credenziali non valide");
@@ -46,12 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (payload: RegisterPayload) => {
     const newUser = await registerUser(payload);
     setUser(newUser);
+    await saveSession(newUser);
   };
 
   const updateProfile = async (changes: ProfileUpdate) => {
     if (!user) throw new Error("Utente non autenticato");
     const updated = await updateUserProfile(user.id, changes);
     setUser(updated);
+    await saveSession(updated);
   };
 
   const updatePassword = async (
@@ -64,19 +89,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
+    clearSession().catch(() => {});
   };
 
   const value = useMemo(
     () => ({
       user,
       isAuthenticated: user ? true : false,
+      isHydrating,
       login,
       register,
       updateProfile,
       updatePassword,
       logout,
     }),
-    [user],
+    [user, isHydrating],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

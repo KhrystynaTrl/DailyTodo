@@ -1,61 +1,44 @@
-import { Notification, notifications } from "../mocks/notifications.mock";
-
-const DELAY = 800;
+import { Notification } from "../mocks/notifications.mock";
+import {
+  loadNotifications,
+  saveNotifications,
+} from "../storage/notifications.storage";
 
 export function getNotifications(): Promise<Notification[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...notifications]), DELAY);
-  });
+  return loadNotifications();
 }
 
-export function getUnreadCount(): Promise<number> {
-  return new Promise((resolve) => {
-    setTimeout(
-      () => resolve(notifications.filter((n) => !n.letta).length),
-      200,
-    );
-  });
+export async function getUnreadCount(): Promise<number> {
+  const list = await loadNotifications();
+  return list.filter((n) => !n.letta).length;
 }
 
-export function markAsRead(id: number): Promise<Notification> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const notification = notifications.find((n) => n.id === id);
+export async function markAsRead(id: number): Promise<Notification> {
+  const list = await loadNotifications();
+  const notification = list.find((n) => n.id === id);
 
-      if (!notification) {
-        reject(new Error("Notifica non trovata"));
-        return;
-      }
+  if (!notification) {
+    throw new Error("Notifica non trovata");
+  }
 
-      notification.letta = true;
-      resolve(notification);
-    }, DELAY);
-  });
+  const next = list.map((n) => (n.id === id ? { ...n, letta: true } : n));
+  await saveNotifications(next);
+  return { ...notification, letta: true };
 }
 
-export function markAllAsRead(): Promise<Notification[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      notifications.forEach((notification) => {
-        notification.letta = true;
-      });
-      resolve([...notifications]);
-    }, DELAY);
-  });
+export async function markAllAsRead(): Promise<Notification[]> {
+  const list = await loadNotifications();
+  const next = list.map((n) => ({ ...n, letta: true }));
+  await saveNotifications(next);
+  return next;
 }
 
-export function deleteNotification(id: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = notifications.findIndex((n) => n.id === id);
+export async function deleteNotification(id: number): Promise<void> {
+  const list = await loadNotifications();
 
-      if (index === -1) {
-        reject(new Error("Notifica non trovata"));
-        return;
-      }
+  if (!list.some((n) => n.id === id)) {
+    throw new Error("Notifica non trovata");
+  }
 
-      notifications.splice(index, 1);
-      resolve();
-    }, DELAY);
-  });
+  await saveNotifications(list.filter((n) => n.id !== id));
 }

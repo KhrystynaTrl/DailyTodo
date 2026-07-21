@@ -1,6 +1,15 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { Theme, themes } from "../theme";
+
+const THEME_STORAGE_KEY = "dailytodo:theme";
 
 type ColorScheme = "light" | "dark";
 type ColorSchemeOverride = ColorScheme | "system";
@@ -16,7 +25,21 @@ const ThemeContext = createContext<ThemeContextType | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const [override, setOverride] = useState<ColorSchemeOverride>("system");
+  const [override, setOverrideState] = useState<ColorSchemeOverride>("system");
+
+  // Recupera la preferenza del tema salvata al precedente avvio.
+  useEffect(() => {
+    AsyncStorage.getItem(THEME_STORAGE_KEY).then((saved) => {
+      if (saved === "light" || saved === "dark" || saved === "system") {
+        setOverrideState(saved);
+      }
+    });
+  }, []);
+
+  const setOverride = (value: ColorSchemeOverride) => {
+    setOverrideState(value);
+    AsyncStorage.setItem(THEME_STORAGE_KEY, value).catch(() => {});
+  };
 
   const colorScheme: ColorScheme =
     override === "system" ? (systemScheme ?? "light") : override;

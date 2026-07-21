@@ -3,6 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -42,14 +43,16 @@ export default function Home() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [dailyStats, activities, appointments, waterState] = await Promise.all([
-      getTodayStats(),
-      getActivities(),
-      getAppointments(),
-      getWaterState(),
-    ]);
+    const [dailyStats, activities, appointments, waterState] =
+      await Promise.all([
+        getTodayStats(),
+        getActivities(),
+        getAppointments(),
+        getWaterState(),
+      ]);
 
     setStats(dailyStats);
     setWaterMl(
@@ -86,7 +89,7 @@ export default function Home() {
   }, [loadData]);
 
   // Aggiorna il conteggio delle notifiche non lette ogni volta che la Home
-  // torna in primo piano (es. dopo aver letto le notifiche).
+  // torna in primo piano
   useFocusEffect(
     useCallback(() => {
       getUnreadCount().then(setUnreadCount);
@@ -195,7 +198,7 @@ export default function Home() {
                 </View>
               ) : null}
             </Pressable>
-            <Avatar label={initials} onPress={() => router.push("/profile")} />
+            <Avatar label={initials} onPress={() => setMenuVisible(true)} />
           </View>
         </View>
 
@@ -225,6 +228,87 @@ export default function Home() {
         <NextAppointmentCard appointment={nextAppointment} />
         <RecentActivityList activities={recentActivities} />
       </ScrollView>
+
+      {/* Menu Profilo / Impostazioni (apertura dall'avatar in alto a destra) */}
+      <Modal
+        visible={menuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <Pressable
+          onPress={() => setMenuVisible(false)}
+          style={{ flex: 1, backgroundColor: "rgba(0, 0, 0, 0.3)" }}
+        >
+          <View
+            style={{
+              position: "absolute",
+              top: 96,
+              right: theme.spacing.lg,
+              minWidth: 200,
+              backgroundColor: theme.colors.surface,
+              borderRadius: theme.radii.lg,
+              borderWidth: 1,
+              borderColor: theme.colors.border,
+              overflow: "hidden",
+              ...theme.shadow,
+            }}
+          >
+            <MenuItem
+              icon="person-outline"
+              label="Profilo"
+              onPress={() => {
+                setMenuVisible(false);
+                router.push("/profile");
+              }}
+            />
+            <View
+              style={{ height: 1, backgroundColor: theme.colors.border }}
+            />
+            <MenuItem
+              icon="settings-outline"
+              label="Impostazioni"
+              onPress={() => {
+                setMenuVisible(false);
+                router.push("/preferences");
+              }}
+            />
+          </View>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
+  );
+}
+
+function MenuItem({
+  icon,
+  label,
+  onPress,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  onPress: () => void;
+}) {
+  const { theme } = useTheme();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          gap: theme.spacing.md,
+          paddingVertical: theme.spacing.md,
+          paddingHorizontal: theme.spacing.lg,
+        },
+        pressed && { backgroundColor: theme.colors.surfaceAlt },
+      ]}
+    >
+      <Ionicons name={icon} size={20} color={theme.colors.primary} />
+      <Text style={{ color: theme.colors.text, ...theme.text.body }}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }

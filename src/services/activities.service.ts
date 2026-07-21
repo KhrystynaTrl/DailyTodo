@@ -1,75 +1,64 @@
-import { Activity, activities } from "../mocks/activities.mock";
-
-const DELAY = 800;
+import { Activity } from "../mocks/activities.mock";
+import { loadActivities, saveActivities } from "../storage/activities.storage";
 
 export function getActivities(): Promise<Activity[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...activities]), DELAY);
-  });
+  return loadActivities();
 }
 
-export function addActivity(
+export async function addActivity(
   activity: Omit<Activity, "id">,
 ): Promise<Activity> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newActivity: Activity = {
-        ...activity,
-        id: Math.max(0, ...activities.map((a) => a.id)) + 1,
-      };
-      activities.push(newActivity);
-      resolve(newActivity);
-    }, DELAY);
-  });
+  const list = await loadActivities();
+  const newActivity: Activity = {
+    ...activity,
+    id: Math.max(0, ...list.map((a) => a.id)) + 1,
+  };
+  await saveActivities([...list, newActivity]);
+  return newActivity;
 }
 
-export function updateActivity(
+export async function updateActivity(
   id: number,
   changes: Partial<Omit<Activity, "id">>,
 ): Promise<Activity> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const activity = activities.find((a) => a.id === id);
+  const list = await loadActivities();
+  const index = list.findIndex((a) => a.id === id);
 
-      if (!activity) {
-        reject(new Error("Attività non trovata"));
-        return;
-      }
+  if (index === -1) {
+    throw new Error("Attività non trovata");
+  }
 
-      Object.assign(activity, changes);
-      resolve(activity);
-    }, DELAY);
-  });
+  const updated: Activity = { ...list[index], ...changes };
+  const next = [...list];
+  next[index] = updated;
+  await saveActivities(next);
+  return updated;
 }
 
-export function deleteActivity(id: number): Promise<void> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = activities.findIndex((a) => a.id === id);
+export async function deleteActivity(id: number): Promise<void> {
+  const list = await loadActivities();
 
-      if (index === -1) {
-        reject(new Error("Attività non trovata"));
-        return;
-      }
+  if (!list.some((a) => a.id === id)) {
+    throw new Error("Attività non trovata");
+  }
 
-      activities.splice(index, 1);
-      resolve();
-    }, DELAY);
-  });
+  await saveActivities(list.filter((a) => a.id !== id));
 }
 
-export function toggleActivityCompletata(id: number): Promise<Activity> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const activity = activities.find((a) => a.id === id);
+export async function toggleActivityCompletata(id: number): Promise<Activity> {
+  const list = await loadActivities();
+  const index = list.findIndex((a) => a.id === id);
 
-      if (!activity) {
-        reject(new Error("Attività non trovata"));
-        return;
-      }
+  if (index === -1) {
+    throw new Error("Attività non trovata");
+  }
 
-      activity.completata = !activity.completata;
-      resolve(activity);
-    }, DELAY);
-  });
+  const updated: Activity = {
+    ...list[index],
+    completata: !list[index].completata,
+  };
+  const next = [...list];
+  next[index] = updated;
+  await saveActivities(next);
+  return updated;
 }
