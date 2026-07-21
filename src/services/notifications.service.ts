@@ -8,6 +8,15 @@ export function getNotifications(): Promise<Notification[]> {
   });
 }
 
+export function getUnreadCount(): Promise<number> {
+  return new Promise((resolve) => {
+    setTimeout(
+      () => resolve(notifications.filter((n) => !n.letta).length),
+      200,
+    );
+  });
+}
+
 export function markAsRead(id: number): Promise<Notification> {
   return new Promise((resolve, reject) => {
     setTimeout(() => {

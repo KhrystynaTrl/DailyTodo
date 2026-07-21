@@ -1,7 +1,9 @@
-import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   RefreshControl,
   ScrollView,
   Text,
@@ -22,6 +24,7 @@ import { DailyStats } from "../../../mocks/dailyStats.mock";
 import { getActivities } from "../../../services/activities.service";
 import { getAppointments } from "../../../services/appointments.service";
 import { getTodayStats } from "../../../services/dailyStats.service";
+import { getUnreadCount } from "../../../services/notifications.service";
 import { WATER_GOAL_ML, getWaterState } from "../../../services/water.service";
 import { formatDate, isToday, parseDate } from "../../../utils/date";
 
@@ -36,6 +39,7 @@ export default function Home() {
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(
     null,
   );
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -80,6 +84,14 @@ export default function Home() {
   useEffect(() => {
     loadData().finally(() => setIsLoading(false));
   }, [loadData]);
+
+  // Aggiorna il conteggio delle notifiche non lette ogni volta che la Home
+  // torna in primo piano (es. dopo aver letto le notifiche).
+  useFocusEffect(
+    useCallback(() => {
+      getUnreadCount().then(setUnreadCount);
+    }, []),
+  );
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -138,7 +150,53 @@ export default function Home() {
               Ciao, {displayName}
             </Text>
           </View>
-          <Avatar label={initials} onPress={() => router.push("/profile")} />
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: theme.spacing.md,
+            }}
+          >
+            <Pressable
+              onPress={() => router.push("/notifications")}
+              hitSlop={8}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={26}
+                color={theme.colors.text}
+              />
+              {unreadCount > 0 ? (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -6,
+                    right: -6,
+                    minWidth: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    paddingHorizontal: 4,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: theme.colors.error,
+                    borderWidth: 2,
+                    borderColor: theme.colors.background,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: theme.colors.onPrimary,
+                      fontSize: 10,
+                      fontWeight: "700",
+                    }}
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </Text>
+                </View>
+              ) : null}
+            </Pressable>
+            <Avatar label={initials} onPress={() => router.push("/profile")} />
+          </View>
         </View>
 
         <View
