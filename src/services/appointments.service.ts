@@ -29,6 +29,14 @@ export function getAppointments(): Promise<Appointment[]> {
   });
 }
 
+export function getAppointmentById(id: number): Promise<Appointment | undefined> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve(appointments.find((a) => a.id === id));
+    }, DELAY);
+  });
+}
+
 export function getServiceTypes(): Promise<ServiceType[]> {
   return new Promise((resolve) => {
     setTimeout(() => resolve([...serviceTypes]), DELAY);
@@ -55,6 +63,7 @@ export function getProfessionals(serviceTypeId?: number): Promise<Professional[]
 export function getAvailableSlots(
   professionalName: string,
   date: string,
+  excludeAppointmentId?: number,
 ): Promise<{ time: string; available: boolean }[]> {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -64,7 +73,8 @@ export function getAvailableSlots(
             (a) =>
               a.professionista === professionalName &&
               a.data === date &&
-              a.stato !== "annullato",
+              a.stato !== "annullato" &&
+              a.id !== excludeAppointmentId,
           )
           .map((a) => a.ora),
       );

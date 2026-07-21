@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppointmentCard from "../../../../components/appointments/AppointmentCard";
+import AppointmentsCalendar from "../../../../components/appointments/AppointmentsCalendar";
 import AppTextField from "../../../../components/ui/AppTextField";
 import Card from "../../../../components/ui/Card";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
@@ -15,8 +16,15 @@ import {
   cancelAppointment,
   getAppointments,
 } from "../../../../services/appointments.service";
+import { formatDate } from "../../../../utils/date";
 
 type StatusFilter = "tutti" | Appointment["stato"];
+type ViewMode = "lista" | "calendario";
+
+const viewModeOptions: { value: ViewMode; label: string }[] = [
+  { value: "lista", label: "Lista" },
+  { value: "calendario", label: "Calendario" },
+];
 
 const statusOptions: { value: StatusFilter; label: string }[] = [
   { value: "tutti", label: "Tutti" },
@@ -34,6 +42,10 @@ export default function AppointmentsList() {
   const [status, setStatus] = useState<StatusFilter>("tutti");
   const [search, setSearch] = useState("");
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("lista");
+  const [selectedDay, setSelectedDay] = useState<string>(() =>
+    formatDate(new Date()),
+  );
 
   const loadAppointments = () => {
     return getAppointments().then(setAppointments);
@@ -58,6 +70,19 @@ export default function AppointmentsList() {
       return true;
     });
   }, [appointments, status, search]);
+
+  const markedDates = useMemo(() => {
+    return new Set(
+      appointments.filter((a) => a.stato !== "annullato").map((a) => a.data),
+    );
+  }, [appointments]);
+
+  const dayAppointments = useMemo(() => {
+    return filteredAppointments.filter((a) => a.data === selectedDay);
+  }, [filteredAppointments, selectedDay]);
+
+  const visibleAppointments =
+    viewMode === "calendario" ? dayAppointments : filteredAppointments;
 
   const handleCancelConfirm = async () => {
     if (!cancelTarget) return;
@@ -135,6 +160,43 @@ export default function AppointmentsList() {
           </Pressable>
         </View>
 
+        <View
+          style={{
+            flexDirection: "row",
+            gap: theme.spacing.xs,
+            marginBottom: theme.spacing.md,
+          }}
+        >
+          {viewModeOptions.map((option) => (
+            <Pressable
+              key={option.value}
+              onPress={() => setViewMode(option.value)}
+              style={{
+                flex: 1,
+                alignItems: "center",
+                paddingVertical: theme.spacing.sm,
+                borderRadius: theme.radii.md,
+                backgroundColor:
+                  viewMode === option.value
+                    ? theme.colors.primary
+                    : theme.colors.surface,
+              }}
+            >
+              <Text
+                style={{
+                  color:
+                    viewMode === option.value
+                      ? theme.colors.onPrimary
+                      : theme.colors.text,
+                  ...theme.text.button,
+                }}
+              >
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
         <AppTextField
           placeholder="Cerca per titolo o professionista"
           value={search}
@@ -179,13 +241,33 @@ export default function AppointmentsList() {
           ))}
         </View>
 
-        {filteredAppointments.length === 0 ? (
-          <EmptyState message="Nessun appuntamento trovato" />
+        {viewMode === "calendario" ? (
+          <AppointmentsCalendar
+            markedDates={markedDates}
+            selectedDate={selectedDay}
+            onSelectDay={setSelectedDay}
+          />
+        ) : null}
+
+        {visibleAppointments.length === 0 ? (
+          <EmptyState
+            message={
+              viewMode === "calendario"
+                ? `Nessun appuntamento per il ${selectedDay}`
+                : "Nessun appuntamento trovato"
+            }
+          />
         ) : (
-          filteredAppointments.map((appointment) => (
+          visibleAppointments.map((appointment) => (
             <AppointmentCard
               key={appointment.id}
               appointment={appointment}
+              onPress={() =>
+                router.push({
+                  pathname: "/appointments/[id]",
+                  params: { id: String(appointment.id) },
+                })
+              }
               onCancel={() => setCancelTarget(appointment)}
             />
           ))
