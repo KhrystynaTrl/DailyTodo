@@ -9,7 +9,11 @@ import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import LoadingState from "../../components/ui/LoadingState";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { getPreferences, updatePreferences } from "../../services/preferences.service";
+import { useToast } from "../../context/ToastContext";
+import {
+  getPreferences,
+  updatePreferences,
+} from "../../services/preferences.service";
 import {
   Language,
   Preferences,
@@ -23,6 +27,7 @@ type ThemeOption = "light" | "dark" | "system";
 export default function PreferencesScreen() {
   const { theme, override, setOverride } = useTheme();
   const { logout } = useAuth();
+  const { showToast } = useToast();
 
   const [prefs, setPrefs] = useState<Preferences>(defaultPreferences);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,18 +40,20 @@ export default function PreferencesScreen() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  // Aggiorna lo stato e persiste in AsyncStorage.
+  // Aggiorna lo stato, persiste in AsyncStorage e conferma con un toast.
   const update = (patch: Partial<Preferences>) => {
-    setPrefs((prev) => {
-      const next = { ...prev, ...patch };
-      updatePreferences(next).catch(() => {});
-      return next;
-    });
+    const next = { ...prefs, ...patch };
+    setPrefs(next);
+    updatePreferences(next)
+      .then(() => showToast("Preferenze salvate"))
+      .catch(() => showToast("Errore nel salvataggio", "error"));
   };
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
         <LoadingState message="Caricamento impostazioni..." />
       </SafeAreaView>
     );
@@ -234,7 +241,11 @@ export default function PreferencesScreen() {
             borderColor: theme.colors.error,
           }}
         >
-          <Ionicons name="log-out-outline" size={20} color={theme.colors.error} />
+          <Ionicons
+            name="log-out-outline"
+            size={20}
+            color={theme.colors.error}
+          />
           <Text style={{ color: theme.colors.error, ...theme.text.button }}>
             Esci
           </Text>
@@ -289,7 +300,7 @@ export default function PreferencesScreen() {
                 ...theme.text.h2,
               }}
             >
-              WellnessApp
+              DailyTodo
             </Text>
             <Text
               style={{
@@ -435,7 +446,10 @@ function Row({
 
   if (onPress && !disabled) {
     return (
-      <Pressable onPress={onPress} style={({ pressed }) => pressed && { opacity: 0.6 }}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => pressed && { opacity: 0.6 }}
+      >
         {content}
       </Pressable>
     );

@@ -4,10 +4,12 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppointmentCard from "../../../../components/appointments/AppointmentCard";
 import AppTextField from "../../../../components/ui/AppTextField";
+import Card from "../../../../components/ui/Card";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import EmptyState from "../../../../components/ui/EmptyState";
-import LoadingState from "../../../../components/ui/LoadingState";
+import Skeleton from "../../../../components/ui/Skeleton";
 import { useTheme } from "../../../../context/ThemeContext";
+import { useToast } from "../../../../context/ToastContext";
 import { Appointment } from "../../../../mocks/appointments.mock";
 import {
   cancelAppointment,
@@ -25,6 +27,7 @@ const statusOptions: { value: StatusFilter; label: string }[] = [
 
 export default function AppointmentsList() {
   const { theme } = useTheme();
+  const { showToast } = useToast();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,23 +61,53 @@ export default function AppointmentsList() {
 
   const handleCancelConfirm = async () => {
     if (!cancelTarget) return;
-    const updated = await cancelAppointment(cancelTarget.id);
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === updated.id ? updated : a)),
-    );
-    setCancelTarget(null);
+    try {
+      const updated = await cancelAppointment(cancelTarget.id);
+      setAppointments((prev) =>
+        prev.map((a) => (a.id === updated.id ? updated : a)),
+      );
+      showToast("Appuntamento annullato");
+    } catch {
+      showToast("Errore durante l'annullamento", "error");
+    } finally {
+      setCancelTarget(null);
+    }
   };
 
   if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <LoadingState message="Caricamento appuntamenti..." />
+        <View style={{ padding: theme.spacing.lg }}>
+          <Skeleton width="45%" height={28} style={{ marginBottom: theme.spacing.lg }} />
+          {[0, 1, 2, 3].map((i) => (
+            <Card
+              key={i}
+              variant="flat"
+              style={{ marginBottom: theme.spacing.sm }}
+            >
+              <Skeleton width="60%" height={18} />
+              <Skeleton
+                width="40%"
+                height={12}
+                style={{ marginTop: theme.spacing.sm }}
+              />
+              <Skeleton
+                width="30%"
+                height={12}
+                style={{ marginTop: theme.spacing.sm }}
+              />
+            </Card>
+          ))}
+        </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
         <View
           style={{

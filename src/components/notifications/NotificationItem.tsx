@@ -13,16 +13,19 @@ export type NotificationTypeConfig = {
   label: string;
 };
 
-// Il tema fornisce solo warning/error come colori semantici: per
-// "informazione" e "successo" usiamo due tinte fisse leggibili sia in tema
-// chiaro sia scuro (caso eccezionale ai colori hardcoded).
+// Ogni tipo di notifica usa un token semantico del tema (info/success/
+// warning/error), coerente in tema chiaro e scuro.
 export function getNotificationTypeConfig(
   tipo: Notification["tipo"],
   theme: Theme,
 ): NotificationTypeConfig {
   switch (tipo) {
     case "successo":
-      return { icon: "checkmark-circle", color: "#22C55E", label: "Successo" };
+      return {
+        icon: "checkmark-circle",
+        color: theme.colors.success,
+        label: "Successo",
+      };
     case "avviso":
       return { icon: "warning", color: theme.colors.warning, label: "Avviso" };
     case "errore":
@@ -31,7 +34,7 @@ export function getNotificationTypeConfig(
     default:
       return {
         icon: "information-circle",
-        color: "#3B82F6",
+        color: theme.colors.info,
         label: "Informazione",
       };
   }

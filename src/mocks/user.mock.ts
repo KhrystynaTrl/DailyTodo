@@ -26,4 +26,9 @@ export const users: User[] = [
     email: "test@wellness.com",
     password: "Password1234",
   },
+  {
+    id: 4,
+    email: "khrystyna.terletska@outlook.it",
+    password: "12345678",
+  },
 ];

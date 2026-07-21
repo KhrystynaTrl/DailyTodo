@@ -13,6 +13,7 @@ import {
   WeekStats,
 } from "../../../mocks/weeklyStats.mock";
 import { getWeekStats } from "../../../services/weeklyStats.service";
+import { ColorTokens } from "../../../theme/colors";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -22,14 +23,14 @@ type MetricConfig = {
   short: string;
   unit: string;
   icon: IoniconName;
-  color: string;
+  colorKey: keyof ColorTokens;
 };
 
 const METRICS: MetricConfig[] = [
-  { key: "steps", label: "Passi", short: "Passi", unit: "", icon: "walk", color: "#819A91" },
-  { key: "activityMinutes", label: "Minuti di attività", short: "Minuti", unit: "min", icon: "time", color: "#D98C4A" },
-  { key: "water", label: "Acqua", short: "Acqua", unit: "ml", icon: "water", color: "#3B82F6" },
-  { key: "completedActivities", label: "Attività completate", short: "Completate", unit: "", icon: "checkmark-done", color: "#22C55E" },
+  { key: "steps", label: "Passi", short: "Passi", unit: "", icon: "walk", colorKey: "primary" },
+  { key: "activityMinutes", label: "Minuti di attività", short: "Minuti", unit: "min", icon: "time", colorKey: "warning" },
+  { key: "water", label: "Acqua", short: "Acqua", unit: "ml", icon: "water", colorKey: "info" },
+  { key: "completedActivities", label: "Attività completate", short: "Completate", unit: "", icon: "checkmark-done", colorKey: "success" },
 ];
 
 const formatNumber = (n: number): string =>
@@ -93,7 +94,10 @@ export default function WeeklyStatistics() {
   const metricAverage = avgMetric(activeWeek, metric);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
         <Text style={{ color: theme.colors.text, ...theme.text.h1 }}>
           Statistiche
@@ -190,7 +194,9 @@ export default function WeeklyStatistics() {
                       variant="flat"
                       style={{
                         borderWidth: 2,
-                        borderColor: selected ? m.color : "transparent",
+                        borderColor: selected
+                          ? theme.colors[m.colorKey]
+                          : "transparent",
                       }}
                     >
                       <View
@@ -201,7 +207,11 @@ export default function WeeklyStatistics() {
                           marginBottom: theme.spacing.sm,
                         }}
                       >
-                        <Ionicons name={m.icon} size={16} color={m.color} />
+                        <Ionicons
+                          name={m.icon}
+                          size={16}
+                          color={theme.colors[m.colorKey]}
+                        />
                         <Text
                           style={{
                             flex: 1,
@@ -269,7 +279,7 @@ export default function WeeklyStatistics() {
               <BarChart
                 data={chartData}
                 labels={chartLabels}
-                color={activeMetric.color}
+                color={theme.colors[activeMetric.colorKey]}
                 average={metricAverage}
                 formatValue={formatNumber}
               />
@@ -294,7 +304,7 @@ export default function WeeklyStatistics() {
                       width: 12,
                       height: 12,
                       borderRadius: theme.radii.sm,
-                      backgroundColor: activeMetric.color,
+                      backgroundColor: theme.colors[activeMetric.colorKey],
                     }}
                   />
                   <Text
@@ -357,7 +367,7 @@ function DeltaBadge({
   const color = isFlat
     ? theme.colors.textMuted
     : isUp
-      ? "#22C55E"
+      ? theme.colors.success
       : theme.colors.error;
 
   return (

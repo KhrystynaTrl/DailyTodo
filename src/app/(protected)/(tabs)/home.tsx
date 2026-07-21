@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Modal,
   Pressable,
   RefreshControl,
@@ -84,16 +85,21 @@ export default function Home() {
     setNextAppointment(upcoming[0] ?? null);
   }, []);
 
-  useEffect(() => {
-    loadData().finally(() => setIsLoading(false));
-  }, [loadData]);
+  const isFirstLoad = useRef(true);
 
-  // Aggiorna il conteggio delle notifiche non lette ogni volta che la Home
-  // torna in primo piano
+  // Ricarica i dati ogni volta che la Home torna in primo piano (es. dopo aver
+  // aggiunto o modificato un'attività), non solo al primo avvio. Lo spinner a
+  // schermo intero compare solo al caricamento iniziale.
   useFocusEffect(
     useCallback(() => {
       getUnreadCount().then(setUnreadCount);
-    }, []),
+      loadData().finally(() => {
+        if (isFirstLoad.current) {
+          setIsLoading(false);
+          isFirstLoad.current = false;
+        }
+      });
+    }, [loadData]),
   );
 
   const handleRefresh = async () => {
@@ -107,6 +113,10 @@ export default function Home() {
     user?.name && user?.surname
       ? `${user.name[0]}${user.surname[0]}`.toUpperCase()
       : (displayName[0]?.toUpperCase() ?? "?");
+
+  // Saluto personalizzato solo se il profilo ha un nome: altrimenti mostriamo
+  // solo "Ciao" (evitiamo la mail troncata, che risulterebbe troppo lunga).
+  const greeting = user?.name ? `Ciao, ${user.name}` : "Ciao";
 
   if (isLoading) {
     return (
@@ -124,7 +134,10 @@ export default function Home() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
       <ScrollView
         contentContainerStyle={{ padding: theme.spacing.lg }}
         refreshControl={
@@ -140,19 +153,29 @@ export default function Home() {
             flexDirection: "row",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: theme.spacing.lg,
+            marginBottom: theme.spacing.md,
           }}
         >
-          <View>
-            <Text
-              style={{ color: theme.colors.textMuted, ...theme.text.caption }}
-            >
-              {formatDate(new Date())}
-            </Text>
-            <Text style={{ color: theme.colors.text, ...theme.text.h1 }}>
-              Ciao, {displayName}
-            </Text>
-          </View>
+          <Image
+            source={require("../../../assets/images/logo.png")}
+            style={{ width: 120, height: 30 }}
+            resizeMode="contain"
+          />
+
+          {/* Data centrata nella riga, dietro logo e icone (non intercetta i tocchi) */}
+          <Text
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              textAlign: "center",
+              color: theme.colors.textMuted,
+              ...theme.text.caption,
+            }}
+          >
+            {formatDate(new Date())}
+          </Text>
           <View
             style={{
               flexDirection: "row",
@@ -201,6 +224,16 @@ export default function Home() {
             <Avatar label={initials} onPress={() => setMenuVisible(true)} />
           </View>
         </View>
+
+        <Text
+          style={{
+            color: theme.colors.text,
+            ...theme.text.h1,
+            marginBottom: theme.spacing.lg,
+          }}
+        >
+          {greeting}
+        </Text>
 
         <View
           style={{

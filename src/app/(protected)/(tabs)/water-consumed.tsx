@@ -111,7 +111,10 @@ export default function WaterConsumed() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
         <View
           style={{

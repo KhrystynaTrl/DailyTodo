@@ -10,8 +10,8 @@ export default function TabsLayout() {
 
   // Su alcuni telefoni (es. Android con navigazione a gesti) insets.bottom è
   // molto piccolo o 0, e la tab bar finisce sotto i tasti di sistema: teniamo
-  // uno spazio minimo garantito.
-  const bottomInset = Math.max(insets.bottom, 12);
+  // uno spazio minimo garantito e un piccolo margine extra di sicurezza.
+  const bottomInset = Math.max(insets.bottom, 12) + 8;
 
   return (
     <Tabs
@@ -23,7 +23,7 @@ export default function TabsLayout() {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.border,
           height: 56 + bottomInset,
-          paddingTop: 8,
+          paddingTop: 6,
           paddingBottom: bottomInset,
         },
         tabBarLabelStyle: {

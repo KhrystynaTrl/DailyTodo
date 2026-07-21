@@ -7,32 +7,38 @@ export type ColorTokens = {
   text: string;
   textMuted: string;
   border: string;
+  success: string;
+  info: string;
   error: string;
   warning: string;
 };
 
 export const lightColors: ColorTokens = {
-  background: "#EEEFE0",
+  background: "#EFF5F6",
   surface: "#FFFFFF",
-  surfaceAlt: "#D1D8BE",
-  primary: "#819A91",
+  surfaceAlt: "#DFEBED",
+  primary: "#0C6C79",
   onPrimary: "#FFFFFF",
-  text: "#333333",
-  textMuted: "#666666",
-  border: "#819A91",
-  error: "#CE2626",
-  warning: "#D98C4A",
+  text: "#14262A",
+  textMuted: "#526A6F",
+  border: "#CFE0E3",
+  success: "#1E9E6A",
+  info: "#2C74B0",
+  error: "#D24B4B",
+  warning: "#DA8A2E",
 };
 
 export const darkColors: ColorTokens = {
-  background: "#35412c",
-  surface: "#262B22",
-  surfaceAlt: "#2F332A",
-  primary: "#A7C1A8",
-  onPrimary: "#1A1A1A",
-  text: "#F2F2F2",
-  textMuted: "#CBCBCB",
-  border: "#A7C1A8",
-  error: "#F87171",
+  background: "#0F1D20",
+  surface: "#17262A",
+  surfaceAlt: "#213035",
+  primary: "#45C0CD",
+  onPrimary: "#072024",
+  text: "#E7F2F3",
+  textMuted: "#93ADB2",
+  border: "#2C3F44",
+  success: "#40C78B",
+  info: "#6FB0E8",
+  error: "#F5837F",
   warning: "#F0A868",
 };

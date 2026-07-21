@@ -12,6 +12,7 @@ import EmptyState from "../../../components/ui/EmptyState";
 import FadeInView from "../../../components/ui/FadeInView";
 import LoadingState from "../../../components/ui/LoadingState";
 import { useTheme } from "../../../context/ThemeContext";
+import { useToast } from "../../../context/ToastContext";
 import { Activity } from "../../../mocks/activities.mock";
 import {
   addActivity,
@@ -23,6 +24,7 @@ import {
 
 export default function DailyActivity() {
   const { theme } = useTheme();
+  const { showToast } = useToast();
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,10 +59,19 @@ export default function DailyActivity() {
   }, [activities, status, category, search]);
 
   const handleToggle = async (activity: Activity) => {
-    const updated = await toggleActivityCompletata(activity.id);
-    setActivities((prev) =>
-      prev.map((a) => (a.id === updated.id ? updated : a)),
-    );
+    try {
+      const updated = await toggleActivityCompletata(activity.id);
+      setActivities((prev) =>
+        prev.map((a) => (a.id === updated.id ? updated : a)),
+      );
+      showToast(
+        updated.completata
+          ? "Attività segnata come completata"
+          : "Attività segnata come da fare",
+      );
+    } catch {
+      showToast("Errore durante l'aggiornamento", "error");
+    }
   };
 
   const handleAdd = () => {
@@ -74,36 +85,54 @@ export default function DailyActivity() {
   };
 
   const handleSave = async (data: Omit<Activity, "id">) => {
-    if (editingActivity) {
-      const updated = await updateActivity(editingActivity.id, data);
-      setActivities((prev) =>
-        prev.map((a) => (a.id === updated.id ? updated : a)),
-      );
-    } else {
-      const created = await addActivity(data);
-      setActivities((prev) => [...prev, created]);
+    try {
+      if (editingActivity) {
+        const updated = await updateActivity(editingActivity.id, data);
+        setActivities((prev) =>
+          prev.map((a) => (a.id === updated.id ? updated : a)),
+        );
+        showToast("Attività aggiornata");
+      } else {
+        const created = await addActivity(data);
+        setActivities((prev) => [...prev, created]);
+        showToast("Attività creata");
+      }
+      setFormVisible(false);
+      setEditingActivity(null);
+    } catch {
+      showToast("Errore durante il salvataggio", "error");
     }
-    setFormVisible(false);
-    setEditingActivity(null);
   };
 
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    await deleteActivity(deleteTarget.id);
-    setActivities((prev) => prev.filter((a) => a.id !== deleteTarget.id));
-    setDeleteTarget(null);
+    try {
+      await deleteActivity(deleteTarget.id);
+      setActivities((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+      showToast("Attività eliminata");
+    } catch {
+      showToast("Errore durante l'eliminazione", "error");
+    } finally {
+      setDeleteTarget(null);
+    }
   };
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+      <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
         <LoadingState message="Caricamento attività..." />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={{ flex: 1, backgroundColor: theme.colors.background }}
+    >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
         <View
           style={{

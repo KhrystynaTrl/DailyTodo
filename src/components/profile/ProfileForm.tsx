@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { useToast } from "../../context/ToastContext";
 import { isAtLeastAge, isRequired, isValidDate } from "../../utils/validators";
 import AppButton from "../ui/AppButton";
 import AppTextField from "../ui/AppTextField";
@@ -38,6 +39,7 @@ const toFields = (user: ReturnType<typeof useAuth>["user"]): ProfileFields => ({
 export default function ProfileForm({ onDirtyChange }: ProfileFormProps) {
   const { theme } = useTheme();
   const { user, updateProfile } = useAuth();
+  const { showToast } = useToast();
 
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [snapshot, setSnapshot] = useState<ProfileFields>(() => toFields(user));
@@ -179,6 +181,7 @@ export default function ProfileForm({ onDirtyChange }: ProfileFormProps) {
       setSnapshot(fields);
       setMode("view");
       setSuccess(true);
+      showToast("Profilo aggiornato con successo");
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Errore durante il salvataggio",

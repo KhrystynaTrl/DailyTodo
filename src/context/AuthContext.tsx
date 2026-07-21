@@ -13,6 +13,7 @@ import {
   updateProfile as updateUserProfile,
 } from "../services/user.service";
 import {
+  SessionUser,
   clearSession,
   loadSession,
   saveSession,
@@ -26,7 +27,7 @@ type LoginPayload = {
 type RegisterPayload = Omit<User, "id">;
 
 type AuthContextType = {
-  user: User | null;
+  user: SessionUser | null;
   isAuthenticated: boolean;
   isHydrating: boolean;
   login: (payload: LoginPayload) => Promise<void>;
@@ -42,7 +43,7 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
 
   // Ripristina la sessione simulata salvata al precedente avvio.
