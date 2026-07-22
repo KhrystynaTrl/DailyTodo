@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ProfileForm from "../../components/profile/ProfileForm";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
+import LogoutButton from "../../components/ui/LogoutButton";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -80,29 +81,10 @@ export default function Profile() {
         <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
           <ProfileForm onDirtyChange={setHasUnsavedChanges} />
 
-          <Pressable
+          <LogoutButton
             onPress={() => setLogoutConfirmVisible(true)}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: theme.spacing.sm,
-              marginTop: theme.spacing.lg,
-              paddingVertical: theme.spacing.md,
-              borderRadius: theme.radii.md,
-              borderWidth: 1,
-              borderColor: theme.colors.error,
-            }}
-          >
-            <Ionicons
-              name="log-out-outline"
-              size={20}
-              color={theme.colors.error}
-            />
-            <Text style={{ color: theme.colors.error, ...theme.text.button }}>
-              Esci
-            </Text>
-          </Pressable>
+            style={{ marginTop: theme.spacing.lg }}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
 

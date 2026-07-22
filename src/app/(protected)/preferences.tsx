@@ -2,19 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
-import {
-  Image,
-  Modal,
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Card from "../../components/ui/Card";
+import AboutModal from "../../components/ui/AboutModal";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import LoadingState from "../../components/ui/LoadingState";
+import LogoutButton from "../../components/ui/LogoutButton";
+import SettingsPills from "../../components/ui/SettingsPills";
+import SettingsRow from "../../components/ui/SettingsRow";
+import SettingsSection from "../../components/ui/SettingsSection";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
@@ -93,8 +89,8 @@ export default function PreferencesScreen() {
 
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
         {/* Notifiche */}
-        <Section title="Notifiche">
-          <Row
+        <SettingsSection title="Notifiche">
+          <SettingsRow
             icon="notifications-outline"
             label="Notifiche"
             description="Attiva o disattiva tutte le notifiche"
@@ -109,7 +105,7 @@ export default function PreferencesScreen() {
               />
             }
           />
-          <Row
+          <SettingsRow
             icon="calendar-outline"
             label="Appuntamenti"
             description="Promemoria per i tuoi appuntamenti"
@@ -128,7 +124,7 @@ export default function PreferencesScreen() {
               />
             }
           />
-          <Row
+          <SettingsRow
             icon="trophy-outline"
             label="Obiettivi"
             description="Avvisi al raggiungimento degli obiettivi"
@@ -146,18 +142,18 @@ export default function PreferencesScreen() {
               />
             }
           />
-        </Section>
+        </SettingsSection>
 
         {/* Aspetto */}
-        <Section title="Aspetto">
-          <Row
+        <SettingsSection title="Aspetto">
+          <SettingsRow
             icon="color-palette-outline"
             label="Tema"
             description="Scegli l'aspetto dell'app"
             isLast
             right={null}
           />
-          <Pills<ThemeOption>
+          <SettingsPills<ThemeOption>
             value={override}
             options={[
               { key: "light", label: "Chiaro" },
@@ -166,17 +162,17 @@ export default function PreferencesScreen() {
             ]}
             onChange={setOverride}
           />
-        </Section>
+        </SettingsSection>
 
         {/* Lingua */}
-        <Section title="Lingua">
-          <Row
+        <SettingsSection title="Lingua">
+          <SettingsRow
             icon="language-outline"
             label="Lingua dell'app"
             isLast
             right={null}
           />
-          <Pills<Language>
+          <SettingsPills<Language>
             value={prefs.language}
             options={[
               { key: "it", label: "Italiano" },
@@ -184,11 +180,11 @@ export default function PreferencesScreen() {
             ]}
             onChange={(language) => update({ language })}
           />
-        </Section>
+        </SettingsSection>
 
         {/* Sicurezza */}
-        <Section title="Sicurezza">
-          <Row
+        <SettingsSection title="Sicurezza">
+          <SettingsRow
             icon="finger-print-outline"
             label="Accesso con biometria"
             description="Sblocca l'app con impronta o volto (simulato)"
@@ -204,11 +200,11 @@ export default function PreferencesScreen() {
               />
             }
           />
-        </Section>
+        </SettingsSection>
 
         {/* Informazioni */}
-        <Section title="Informazioni">
-          <Row
+        <SettingsSection title="Informazioni">
+          <SettingsRow
             icon="information-circle-outline"
             label="Informazioni sull'app"
             onPress={() => setAboutVisible(true)}
@@ -220,7 +216,7 @@ export default function PreferencesScreen() {
               />
             }
           />
-          <Row
+          <SettingsRow
             icon="code-slash-outline"
             label="Versione"
             isLast
@@ -232,117 +228,20 @@ export default function PreferencesScreen() {
               </Text>
             }
           />
-        </Section>
+        </SettingsSection>
 
         {/* Logout */}
-        <Pressable
+        <LogoutButton
           onPress={() => setLogoutVisible(true)}
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: theme.spacing.sm,
-            marginTop: theme.spacing.md,
-            paddingVertical: theme.spacing.md,
-            borderRadius: theme.radii.md,
-            borderWidth: 1,
-            borderColor: theme.colors.error,
-          }}
-        >
-          <Ionicons
-            name="log-out-outline"
-            size={20}
-            color={theme.colors.error}
-          />
-          <Text style={{ color: theme.colors.error, ...theme.text.button }}>
-            Esci
-          </Text>
-        </Pressable>
+          style={{ marginTop: theme.spacing.md }}
+        />
       </ScrollView>
 
-      {/* Info app */}
-      <Modal
+      <AboutModal
         visible={aboutVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setAboutVisible(false)}
-      >
-        <Pressable
-          onPress={() => setAboutVisible(false)}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: theme.spacing.lg,
-          }}
-        >
-          <Pressable
-            onPress={() => {}}
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: theme.radii.lg,
-              padding: theme.spacing.lg,
-              width: "100%",
-              maxWidth: 360,
-              alignItems: "center",
-            }}
-          >
-            <Image
-              source={require("../../assets/images/logo.png")}
-              style={{
-                width: 64,
-                height: 64,
-                marginBottom: theme.spacing.md,
-              }}
-              resizeMode="contain"
-            />
-            <Text
-              style={{
-                color: theme.colors.text,
-                marginBottom: theme.spacing.xs,
-                ...theme.text.h2,
-              }}
-            >
-              DailyTodo
-            </Text>
-            <Text
-              style={{
-                color: theme.colors.textMuted,
-                textAlign: "center",
-                marginBottom: theme.spacing.md,
-                ...theme.text.body,
-              }}
-            >
-              La tua app per il benessere quotidiano: attività, appuntamenti,
-              idratazione e statistiche in un unico posto.
-            </Text>
-            <Text
-              style={{ color: theme.colors.textMuted, ...theme.text.caption }}
-            >
-              Versione {APP_VERSION}
-            </Text>
-
-            <Pressable
-              onPress={() => setAboutVisible(false)}
-              style={{
-                marginTop: theme.spacing.lg,
-                alignSelf: "stretch",
-                alignItems: "center",
-                backgroundColor: theme.colors.primary,
-                borderRadius: theme.radii.md,
-                paddingVertical: theme.spacing.sm,
-              }}
-            >
-              <Text
-                style={{ color: theme.colors.onPrimary, ...theme.text.button }}
-              >
-                Chiudi
-              </Text>
-            </Pressable>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => setAboutVisible(false)}
+        appVersion={APP_VERSION}
+      />
 
       {/* Conferma logout */}
       <ConfirmationModal
@@ -358,159 +257,5 @@ export default function PreferencesScreen() {
         onCancel={() => setLogoutVisible(false)}
       />
     </SafeAreaView>
-  );
-}
-
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  const { theme } = useTheme();
-
-  return (
-    <View style={{ marginBottom: theme.spacing.lg }}>
-      <Text
-        style={{
-          color: theme.colors.textMuted,
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-          marginBottom: theme.spacing.sm,
-          marginLeft: theme.spacing.xs,
-          ...theme.text.caption,
-          fontSize: 12,
-        }}
-      >
-        {title}
-      </Text>
-      <Card variant="flat" style={{ padding: 0 }}>
-        {children}
-      </Card>
-    </View>
-  );
-}
-
-type RowProps = {
-  icon: React.ComponentProps<typeof Ionicons>["name"];
-  label: string;
-  description?: string;
-  right?: React.ReactNode;
-  onPress?: () => void;
-  disabled?: boolean;
-  isLast?: boolean;
-};
-
-function Row({
-  icon,
-  label,
-  description,
-  right,
-  onPress,
-  disabled,
-  isLast,
-}: RowProps) {
-  const { theme } = useTheme();
-
-  const content = (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: theme.spacing.md,
-        paddingVertical: theme.spacing.md,
-        paddingHorizontal: theme.spacing.lg,
-        borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: theme.colors.border,
-        opacity: disabled ? 0.5 : 1,
-      }}
-    >
-      <Ionicons name={icon} size={22} color={theme.colors.primary} />
-      <View style={{ flex: 1 }}>
-        <Text style={{ color: theme.colors.text, ...theme.text.body }}>
-          {label}
-        </Text>
-        {description ? (
-          <Text
-            style={{
-              color: theme.colors.textMuted,
-              marginTop: 2,
-              ...theme.text.caption,
-              fontSize: 12,
-            }}
-          >
-            {description}
-          </Text>
-        ) : null}
-      </View>
-      {right ?? null}
-    </View>
-  );
-
-  if (onPress && !disabled) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => pressed && { opacity: 0.6 }}
-      >
-        {content}
-      </Pressable>
-    );
-  }
-
-  return content;
-}
-
-function Pills<T extends string>({
-  value,
-  options,
-  onChange,
-}: {
-  value: T;
-  options: { key: T; label: string }[];
-  onChange: (value: T) => void;
-}) {
-  const { theme } = useTheme();
-
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        gap: theme.spacing.sm,
-        paddingHorizontal: theme.spacing.lg,
-        paddingBottom: theme.spacing.md,
-      }}
-    >
-      {options.map((option) => {
-        const active = value === option.key;
-        return (
-          <Pressable
-            key={option.key}
-            onPress={() => onChange(option.key)}
-            style={{
-              flex: 1,
-              alignItems: "center",
-              paddingVertical: theme.spacing.sm,
-              borderRadius: theme.radii.md,
-              backgroundColor: active
-                ? theme.colors.primary
-                : theme.colors.surface,
-              borderWidth: 1,
-              borderColor: active ? theme.colors.primary : theme.colors.border,
-            }}
-          >
-            <Text
-              style={{
-                color: active ? theme.colors.onPrimary : theme.colors.text,
-                ...theme.text.caption,
-              }}
-            >
-              {option.label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
   );
 }

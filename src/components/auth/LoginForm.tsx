@@ -1,16 +1,6 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import AuthHeader from "../../components/auth/AuthHeader";
+import { Pressable, StyleSheet, Text, TextInput } from "react-native";
 import AppButton from "../../components/ui/AppButton";
 import AppTextField from "../../components/ui/AppTextField";
 import { useAuth } from "../../context/AuthContext";
@@ -18,6 +8,7 @@ import { useTheme } from "../../context/ThemeContext";
 import spacing from "../../theme/spacing";
 import { isValidEmail, minLength } from "../../utils/validators";
 import PasswordField from "../ui/PasswordField";
+import AuthScreenShell from "./AuthScreenShell";
 
 export default function LoginForm() {
   const { login } = useAuth();
@@ -74,101 +65,69 @@ export default function LoginForm() {
   };
 
   return (
-    <Pressable
-      accessible={false}
-      style={[styles.container, { backgroundColor: theme.colors.surfaceAlt }]}
-    >
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.form}>
-            <AuthHeader />
+    <AuthScreenShell>
+      <AppTextField
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        onBlur={validateEmailAddress}
+        error={emailError}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        returnKeyType="next"
+        blurOnSubmit={false}
+        onSubmitEditing={() => passwordRef.current?.focus()}
+      />
 
-            <AppTextField
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              onBlur={validateEmailAddress}
-              error={emailError}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              returnKeyType="next"
-              blurOnSubmit={false}
-              onSubmitEditing={() => passwordRef.current?.focus()}
-            />
+      <PasswordField
+        ref={passwordRef}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        onBlur={validatePassword}
+        error={passwordError}
+        returnKeyType="done"
+        onSubmitEditing={() => handleLogin()}
+      />
 
-            <PasswordField
-              ref={passwordRef}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              onBlur={validatePassword}
-              error={passwordError}
-              returnKeyType="done"
-              onSubmitEditing={() => handleLogin()}
-            />
+      {submitError ? (
+        <Text
+          style={[
+            { color: theme.colors.error, ...theme.text.caption },
+            styles.errorText,
+          ]}
+        >
+          {submitError}
+        </Text>
+      ) : null}
 
-            {submitError ? (
-              <Text
-                style={[
-                  { color: theme.colors.error, ...theme.text.caption },
-                  styles.errorText,
-                ]}
-              >
-                {submitError}
-              </Text>
-            ) : null}
+      <AppButton title="Accedi" onPress={handleLogin} loading={isLoading} />
 
-            <AppButton
-              title="Accedi"
-              onPress={handleLogin}
-              loading={isLoading}
-            />
-
-            <Pressable onPress={() => router.push("/forgot-password")}>
-              <Text
-                style={[
-                  { color: theme.colors.primary, ...theme.text.link },
-                  styles.linkText,
-                ]}
-              >
-                Password dimenticata? Clicca qui
-              </Text>
-            </Pressable>
-            <Pressable onPress={() => router.push("/register")}>
-              <Text
-                style={[
-                  { color: theme.colors.primary, ...theme.text.link },
-                  styles.linkText,
-                ]}
-              >
-                Registrati
-              </Text>
-            </Pressable>
-          </View>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
-    </Pressable>
+      <Pressable onPress={() => router.push("/forgot-password")}>
+        <Text
+          style={[
+            { color: theme.colors.primary, ...theme.text.link },
+            styles.linkText,
+          ]}
+        >
+          Password dimenticata? Clicca qui
+        </Text>
+      </Pressable>
+      <Pressable onPress={() => router.push("/register")}>
+        <Text
+          style={[
+            { color: theme.colors.primary, ...theme.text.link },
+            styles.linkText,
+          ]}
+        >
+          Registrati
+        </Text>
+      </Pressable>
+    </AuthScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  safeArea: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  form: {
-    padding: spacing.lg,
-  },
   linkText: {
     textAlign: "center",
     marginTop: spacing.md,

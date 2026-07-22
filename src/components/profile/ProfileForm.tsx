@@ -1,197 +1,50 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
-import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { useToast } from "../../context/ToastContext";
-import { isAtLeastAge, isRequired, isValidDate } from "../../utils/validators";
 import AppButton from "../ui/AppButton";
 import AppTextField from "../ui/AppTextField";
 import Card from "../ui/Card";
 import DateField from "../ui/DateField";
 import ImgCard from "../ui/ImgCard";
+import ChangePasswordModal from "./ChangePasswordModal";
+import { useProfileForm } from "./useProfileForm";
 
 const maxBirthDate = new Date();
 maxBirthDate.setFullYear(maxBirthDate.getFullYear() - 16);
-import ChangePasswordModal from "./ChangePasswordModal";
-
-type ProfileFields = {
-  name: string;
-  surname: string;
-  phone: string;
-  birthDate: string;
-  profilePicture: string;
-  bio: string;
-};
 
 type ProfileFormProps = {
   onDirtyChange?: (dirty: boolean) => void;
 };
 
-const toFields = (user: ReturnType<typeof useAuth>["user"]): ProfileFields => ({
-  name: user?.name ?? "",
-  surname: user?.surname ?? "",
-  phone: user?.phone ?? "",
-  birthDate: user?.birthDate ?? "",
-  profilePicture: user?.profilePicture ?? "",
-  bio: user?.bio ?? "",
-});
-
 export default function ProfileForm({ onDirtyChange }: ProfileFormProps) {
   const { theme } = useTheme();
-  const { user, updateProfile } = useAuth();
-  const { showToast } = useToast();
+  const {
+    user,
+    isEditing,
+    fields,
+    setField,
+    nameError,
+    surnameError,
+    phoneError,
+    birthDateError,
+    profilePictureError,
+    submitError,
+    success,
+    isSaving,
+    validateName,
+    validateSurname,
+    validatePhone,
+    validateBirthDate,
+    handleSave,
+    startEdit,
+    cancelEdit,
+  } = useProfileForm(onDirtyChange);
 
-  const [mode, setMode] = useState<"view" | "edit">("view");
-  const [snapshot, setSnapshot] = useState<ProfileFields>(() => toFields(user));
-  const [fields, setFields] = useState<ProfileFields>(() => toFields(user));
-
-  const [nameError, setNameError] = useState("");
-  const [surnameError, setSurnameError] = useState("");
-  const [phoneError, setPhoneError] = useState("");
-  const [birthDateError, setBirthDateError] = useState("");
-  const [profilePictureError, setProfilePictureError] = useState("");
-
-  const [submitError, setSubmitError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [passwordModalVisible, setPasswordModalVisible] = useState(false);
 
   const surnameRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
   const birthDateRef = useRef<TextInput>(null);
-
-  const isDirty =
-    mode === "edit" && JSON.stringify(fields) !== JSON.stringify(snapshot);
-
-  useEffect(() => {
-    onDirtyChange?.(isDirty);
-  }, [isDirty, onDirtyChange]);
-
-  const setField = <K extends keyof ProfileFields>(key: K, value: ProfileFields[K]) => {
-    setFields((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const startEdit = () => {
-    setSnapshot(toFields(user));
-    setFields(toFields(user));
-    setNameError("");
-    setSurnameError("");
-    setPhoneError("");
-    setBirthDateError("");
-    setProfilePictureError("");
-    setSubmitError("");
-    setSuccess(false);
-    setMode("edit");
-  };
-
-  const cancelEdit = () => {
-    setFields(snapshot);
-    setNameError("");
-    setSurnameError("");
-    setPhoneError("");
-    setBirthDateError("");
-    setProfilePictureError("");
-    setSubmitError("");
-    setMode("view");
-  };
-
-  const validateName = () => {
-    if (!isRequired(fields.name)) {
-      setNameError("Inserisci il tuo nome");
-      return false;
-    }
-    setNameError("");
-    return true;
-  };
-
-  const validateSurname = () => {
-    if (!isRequired(fields.surname)) {
-      setSurnameError("Inserisci il tuo cognome");
-      return false;
-    }
-    setSurnameError("");
-    return true;
-  };
-
-  const validatePhone = () => {
-    if (!isRequired(fields.phone)) {
-      setPhoneError("Inserisci il tuo numero di telefono");
-      return false;
-    }
-    setPhoneError("");
-    return true;
-  };
-
-  const validateBirthDate = () => {
-    if (!isRequired(fields.birthDate)) {
-      setBirthDateError("Inserisci la tua data di nascita");
-      return false;
-    }
-    if (!isValidDate(fields.birthDate)) {
-      setBirthDateError("Inserisci una data valida (GG/MM/AAAA)");
-      return false;
-    }
-    if (!isAtLeastAge(fields.birthDate, 16)) {
-      setBirthDateError("Devi avere almeno 16 anni");
-      return false;
-    }
-    setBirthDateError("");
-    return true;
-  };
-
-  const validateProfilePicture = () => {
-    if (!isRequired(fields.profilePicture)) {
-      setProfilePictureError("Seleziona una foto profilo");
-      return false;
-    }
-    setProfilePictureError("");
-    return true;
-  };
-
-  const handleSave = async () => {
-    setSubmitError("");
-    setSuccess(false);
-
-    const isNameValid = validateName();
-    const isSurnameValid = validateSurname();
-    const isPhoneValid = validatePhone();
-    const isBirthDateValid = validateBirthDate();
-    const isProfilePictureValid = validateProfilePicture();
-
-    if (
-      !isNameValid ||
-      !isSurnameValid ||
-      !isPhoneValid ||
-      !isBirthDateValid ||
-      !isProfilePictureValid
-    ) {
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await updateProfile({
-        name: fields.name,
-        surname: fields.surname,
-        phone: fields.phone,
-        birthDate: fields.birthDate,
-        profilePicture: fields.profilePicture,
-        bio: fields.bio || undefined,
-      });
-      setSnapshot(fields);
-      setMode("view");
-      setSuccess(true);
-      showToast("Profilo aggiornato con successo");
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Errore durante il salvataggio",
-      );
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const isEditing = mode === "edit";
 
   return (
     <>

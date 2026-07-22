@@ -12,6 +12,7 @@ import AppTextField from "../ui/AppTextField";
 import Card from "../ui/Card";
 import DateField from "../ui/DateField";
 import LoadingState from "../ui/LoadingState";
+import TimeSlotPicker, { TimeSlot } from "./TimeSlotPicker";
 
 type AppointmentFormProps = {
   appointment: Appointment;
@@ -33,9 +34,7 @@ export default function AppointmentForm({
   const [dateError, setDateError] = useState("");
   const [time, setTime] = useState(appointment.ora);
 
-  const [slots, setSlots] = useState<{ time: string; available: boolean }[]>(
-    [],
-  );
+  const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   const [note, setNote] = useState(appointment.note ?? "");
@@ -161,45 +160,7 @@ export default function AppointmentForm({
       {isLoadingSlots ? (
         <LoadingState message="Caricamento orari disponibili..." />
       ) : (
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: theme.spacing.xs,
-          }}
-        >
-          {slots.map((slot) => (
-            <Pressable
-              key={slot.time}
-              disabled={!slot.available}
-              onPress={() => setTime(slot.time)}
-              style={{
-                backgroundColor:
-                  time === slot.time
-                    ? theme.colors.primary
-                    : slot.available
-                      ? theme.colors.surface
-                      : theme.colors.surfaceAlt,
-                opacity: slot.available ? 1 : 0.4,
-                borderRadius: theme.radii.md,
-                paddingVertical: theme.spacing.sm,
-                paddingHorizontal: theme.spacing.md,
-              }}
-            >
-              <Text
-                style={{
-                  color:
-                    time === slot.time
-                      ? theme.colors.onPrimary
-                      : theme.colors.text,
-                  ...theme.text.body,
-                }}
-              >
-                {slot.time}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <TimeSlotPicker slots={slots} value={time} onChange={setTime} />
       )}
 
       <Text

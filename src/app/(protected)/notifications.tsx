@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Modal, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getNotificationTypeConfig } from "../../components/notifications/NotificationItem";
+import NotificationDetailModal from "../../components/notifications/NotificationDetailModal";
+import NotificationFilterBar, {
+  NotificationFilter,
+} from "../../components/notifications/NotificationFilterBar";
 import NotificationList from "../../components/notifications/NotificationList";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import LoadingState from "../../components/ui/LoadingState";
@@ -16,20 +19,12 @@ import {
   markAsRead,
 } from "../../services/notifications.service";
 
-type Filter = "tutte" | "nonlette" | "lette";
-
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: "tutte", label: "Tutte" },
-  { key: "nonlette", label: "Non lette" },
-  { key: "lette", label: "Lette" },
-];
-
 export default function Notifications() {
   const { theme } = useTheme();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<Filter>("tutte");
+  const [filter, setFilter] = useState<NotificationFilter>("tutte");
   const [selected, setSelected] = useState<Notification | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -88,10 +83,6 @@ export default function Notifications() {
     deleteNotification(id).catch(() => {});
   };
 
-  const selectedConfig = selected
-    ? getNotificationTypeConfig(selected.tipo, theme)
-    : null;
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <View
@@ -129,76 +120,11 @@ export default function Notifications() {
         ) : null}
       </View>
 
-      <View
-        style={{
-          flexDirection: "row",
-          gap: theme.spacing.sm,
-          paddingHorizontal: theme.spacing.lg,
-          paddingTop: theme.spacing.md,
-        }}
-      >
-        {FILTERS.map(({ key, label }) => {
-          const active = filter === key;
-          const badge = key === "nonlette" && unreadCount > 0;
-          return (
-            <Pressable
-              key={key}
-              onPress={() => setFilter(key)}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: theme.spacing.xs,
-                paddingVertical: theme.spacing.xs,
-                paddingHorizontal: theme.spacing.md,
-                borderRadius: theme.radii.md,
-                backgroundColor: active
-                  ? theme.colors.primary
-                  : theme.colors.surface,
-                borderWidth: 1,
-                borderColor: active
-                  ? theme.colors.primary
-                  : theme.colors.border,
-              }}
-            >
-              <Text
-                style={{
-                  color: active ? theme.colors.onPrimary : theme.colors.text,
-                  ...theme.text.caption,
-                }}
-              >
-                {label}
-              </Text>
-              {badge ? (
-                <View
-                  style={{
-                    minWidth: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    paddingHorizontal: 4,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: active
-                      ? theme.colors.onPrimary
-                      : theme.colors.primary,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: active
-                        ? theme.colors.primary
-                        : theme.colors.onPrimary,
-                      fontSize: 11,
-                      fontWeight: "700",
-                    }}
-                  >
-                    {unreadCount}
-                  </Text>
-                </View>
-              ) : null}
-            </Pressable>
-          );
-        })}
-      </View>
+      <NotificationFilterBar
+        value={filter}
+        unreadCount={unreadCount}
+        onChange={setFilter}
+      />
 
       {isLoading ? (
         <LoadingState message="Caricamento notifiche..." />
@@ -223,129 +149,10 @@ export default function Notifications() {
       )}
 
       {/* Dettaglio notifica */}
-      <Modal
-        visible={selected !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setSelected(null)}
-      >
-        <Pressable
-          onPress={() => setSelected(null)}
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.4)",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: theme.spacing.lg,
-          }}
-        >
-          <Pressable
-            onPress={() => {}}
-            style={{
-              backgroundColor: theme.colors.surface,
-              borderRadius: theme.radii.lg,
-              padding: theme.spacing.lg,
-              width: "100%",
-              maxWidth: 380,
-            }}
-          >
-            {selected && selectedConfig ? (
-              <>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: theme.spacing.sm,
-                    marginBottom: theme.spacing.md,
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: selectedConfig.color + "22",
-                    }}
-                  >
-                    <Ionicons
-                      name={selectedConfig.icon}
-                      size={22}
-                      color={selectedConfig.color}
-                    />
-                  </View>
-                  <View
-                    style={{
-                      backgroundColor: selectedConfig.color + "22",
-                      borderRadius: theme.radii.sm,
-                      paddingHorizontal: theme.spacing.sm,
-                      paddingVertical: 2,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: selectedConfig.color,
-                        ...theme.text.caption,
-                      }}
-                    >
-                      {selectedConfig.label}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text
-                  style={{
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.xs,
-                    ...theme.text.h2,
-                  }}
-                >
-                  {selected.titolo}
-                </Text>
-                <Text
-                  style={{
-                    color: theme.colors.textMuted,
-                    marginBottom: theme.spacing.md,
-                    ...theme.text.caption,
-                  }}
-                >
-                  {selected.data}
-                </Text>
-                <Text
-                  style={{
-                    color: theme.colors.text,
-                    marginBottom: theme.spacing.lg,
-                    ...theme.text.body,
-                  }}
-                >
-                  {selected.messaggio}
-                </Text>
-
-                <Pressable
-                  onPress={() => setSelected(null)}
-                  style={{
-                    alignSelf: "flex-end",
-                    backgroundColor: theme.colors.primary,
-                    borderRadius: theme.radii.md,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.lg,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: theme.colors.onPrimary,
-                      ...theme.text.button,
-                    }}
-                  >
-                    Chiudi
-                  </Text>
-                </Pressable>
-              </>
-            ) : null}
-          </Pressable>
-        </Pressable>
-      </Modal>
+      <NotificationDetailModal
+        notification={selected}
+        onClose={() => setSelected(null)}
+      />
 
       {/* Conferma eliminazione */}
       <ConfirmationModal

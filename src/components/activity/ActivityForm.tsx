@@ -1,13 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { Activity } from "../../mocks/activities.mock";
@@ -15,6 +7,8 @@ import { formatTimeInput } from "../../utils/date";
 import { isRequired, isValidDate } from "../../utils/validators";
 import AppButton from "../ui/AppButton";
 import AppTextField from "../ui/AppTextField";
+import BottomSheetModal from "../ui/BottomSheetModal";
+import ChipSelector from "../ui/ChipSelector";
 import DateField from "../ui/DateField";
 
 type ActivityFormProps = {
@@ -132,190 +126,113 @@ export default function ActivityForm({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <BottomSheetModal visible={visible} onRequestClose={onClose} maxHeight="95%">
+      <ScrollView
+        style={{ flexShrink: 1 }}
+        contentContainerStyle={{ padding: theme.spacing.lg }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text
+          style={{
+            color: theme.colors.text,
+            marginBottom: theme.spacing.lg,
+            ...theme.text.h2,
+          }}
+        >
+          {initialActivity ? "Modifica attività" : "Nuova attività"}
+        </Text>
+
+        <AppTextField
+          placeholder="Titolo"
+          value={titolo}
+          onChangeText={setTitolo}
+          onBlur={validateTitolo}
+          error={titoloError}
+        />
+
+        <AppTextField
+          placeholder="Descrizione (opzionale)"
+          value={descrizione}
+          onChangeText={setDescrizione}
+          multiline
+        />
+
+        <Text
+          style={{
+            color: theme.colors.textMuted,
+            marginBottom: theme.spacing.xs,
+            ...theme.text.caption,
+          }}
+        >
+          Categoria
+        </Text>
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <ChipSelector
+            options={categories}
+            labels={categoryLabel}
+            value={categoria}
+            onChange={setCategoria}
+          />
+        </View>
+
+        <DateField
+          placeholder="Data (GG/MM/AAAA)"
+          value={data}
+          onChangeText={setData}
+          onBlur={validateData}
+          error={dataError}
+        />
+
+        <AppTextField
+          placeholder="Ora (opzionale, HH:MM)"
+          value={ora}
+          onChangeText={(text) => setOra(formatTimeInput(text))}
+          keyboardType="numeric"
+          maxLength={5}
+        />
+
+        <Text
+          style={{
+            color: theme.colors.textMuted,
+            marginBottom: theme.spacing.xs,
+            ...theme.text.caption,
+          }}
+        >
+          Priorità
+        </Text>
+        <View style={{ marginBottom: theme.spacing.lg }}>
+          <ChipSelector
+            options={priorities}
+            labels={priorityLabel}
+            value={priorita}
+            onChange={setPriorita}
+          />
+        </View>
+      </ScrollView>
+
       <View
         style={{
-          flex: 1,
-          backgroundColor: "rgba(0, 0, 0, 0.4)",
-          justifyContent: "flex-end",
+          padding: theme.spacing.lg,
+          paddingTop: theme.spacing.sm,
+          paddingBottom: theme.spacing.lg + insets.bottom,
+          borderTopWidth: 1,
+          borderTopColor: theme.colors.border,
         }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={{ maxHeight: "95%" }}
-        >
-          <View
+        <AppButton title="Salva" onPress={handleSave} />
+
+        <Pressable onPress={onClose} style={{ marginTop: theme.spacing.sm }}>
+          <Text
             style={{
-              backgroundColor: theme.colors.background,
-              borderTopLeftRadius: theme.radii.lg,
-              borderTopRightRadius: theme.radii.lg,
-              flexShrink: 1,
+              color: theme.colors.textMuted,
+              textAlign: "center",
+              ...theme.text.link,
             }}
           >
-            <ScrollView
-              style={{ flexShrink: 1 }}
-              contentContainerStyle={{ padding: theme.spacing.lg }}
-              keyboardShouldPersistTaps="handled"
-            >
-              <Text
-                style={{
-                  color: theme.colors.text,
-                  marginBottom: theme.spacing.lg,
-                  ...theme.text.h2,
-                }}
-              >
-                {initialActivity ? "Modifica attività" : "Nuova attività"}
-              </Text>
-
-              <AppTextField
-                placeholder="Titolo"
-                value={titolo}
-                onChangeText={setTitolo}
-                onBlur={validateTitolo}
-                error={titoloError}
-              />
-
-              <AppTextField
-                placeholder="Descrizione (opzionale)"
-                value={descrizione}
-                onChangeText={setDescrizione}
-                multiline
-              />
-
-              <Text
-                style={{
-                  color: theme.colors.textMuted,
-                  marginBottom: theme.spacing.xs,
-                  ...theme.text.caption,
-                }}
-              >
-                Categoria
-              </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: theme.spacing.xs,
-                  marginBottom: theme.spacing.md,
-                }}
-              >
-                {categories.map((option) => (
-                  <Pressable
-                    key={option}
-                    onPress={() => setCategoria(option)}
-                    style={{
-                      backgroundColor:
-                        categoria === option
-                          ? theme.colors.primary
-                          : theme.colors.surface,
-                      borderRadius: theme.radii.md,
-                      paddingVertical: theme.spacing.xs,
-                      paddingHorizontal: theme.spacing.sm,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          categoria === option
-                            ? theme.colors.onPrimary
-                            : theme.colors.text,
-                        ...theme.text.caption,
-                      }}
-                    >
-                      {categoryLabel[option]}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-
-              <DateField
-                placeholder="Data (GG/MM/AAAA)"
-                value={data}
-                onChangeText={setData}
-                onBlur={validateData}
-                error={dataError}
-              />
-
-              <AppTextField
-                placeholder="Ora (opzionale, HH:MM)"
-                value={ora}
-                onChangeText={(text) => setOra(formatTimeInput(text))}
-                keyboardType="numeric"
-                maxLength={5}
-              />
-
-              <Text
-                style={{
-                  color: theme.colors.textMuted,
-                  marginBottom: theme.spacing.xs,
-                  ...theme.text.caption,
-                }}
-              >
-                Priorità
-              </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: theme.spacing.xs,
-                  marginBottom: theme.spacing.lg,
-                }}
-              >
-                {priorities.map((option) => (
-                  <Pressable
-                    key={option}
-                    onPress={() => setPriorita(option)}
-                    style={{
-                      backgroundColor:
-                        priorita === option
-                          ? theme.colors.primary
-                          : theme.colors.surface,
-                      borderRadius: theme.radii.md,
-                      paddingVertical: theme.spacing.xs,
-                      paddingHorizontal: theme.spacing.sm,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color:
-                          priorita === option
-                            ? theme.colors.onPrimary
-                            : theme.colors.text,
-                        ...theme.text.caption,
-                      }}
-                    >
-                      {priorityLabel[option]}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-
-            <View
-              style={{
-                padding: theme.spacing.lg,
-                paddingTop: theme.spacing.sm,
-                paddingBottom: theme.spacing.lg + insets.bottom,
-                borderTopWidth: 1,
-                borderTopColor: theme.colors.border,
-              }}
-            >
-              <AppButton title="Salva" onPress={handleSave} />
-
-              <Pressable onPress={onClose} style={{ marginTop: theme.spacing.sm }}>
-                <Text
-                  style={{
-                    color: theme.colors.textMuted,
-                    textAlign: "center",
-                    ...theme.text.link,
-                  }}
-                >
-                  Annulla
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </KeyboardAvoidingView>
+            Annulla
+          </Text>
+        </Pressable>
       </View>
-    </Modal>
+    </BottomSheetModal>
   );
 }

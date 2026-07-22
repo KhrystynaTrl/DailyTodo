@@ -1,12 +1,13 @@
-import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppButton from "../../../components/ui/AppButton";
 import AppTextField from "../../../components/ui/AppTextField";
 import Card from "../../../components/ui/Card";
 import EmptyState from "../../../components/ui/EmptyState";
 import LoadingState from "../../../components/ui/LoadingState";
+import WaterEntryRow from "../../../components/water/WaterEntryRow";
+import WaterProgressCircle from "../../../components/water/WaterProgressCircle";
 import { useTheme } from "../../../context/ThemeContext";
 import {
   WATER_GOAL_ML,
@@ -18,7 +19,6 @@ import {
 import { WaterEntry } from "../../../storage/water.storage";
 
 const PRESET_AMOUNTS = [150, 250, 500];
-const CIRCLE_SIZE = 200;
 
 export default function WaterConsumed() {
   const { theme } = useTheme();
@@ -28,8 +28,6 @@ export default function WaterConsumed() {
   const [isSaving, setIsSaving] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
   const [customAmountError, setCustomAmountError] = useState("");
-
-  const fillAnim = useRef(new Animated.Value(0)).current;
 
   const total = useMemo(
     () => entries.reduce((sum, entry) => sum + entry.quantita, 0),
@@ -48,14 +46,6 @@ export default function WaterConsumed() {
       .then((state) => setEntries(state.entries))
       .finally(() => setIsLoading(false));
   }, []);
-
-  useEffect(() => {
-    Animated.timing(fillAnim, {
-      toValue: percentage,
-      duration: 500,
-      useNativeDriver: false,
-    }).start();
-  }, [percentage, fillAnim]);
 
   const handleAdd = async (quantita: number) => {
     setIsSaving(true);
@@ -95,11 +85,6 @@ export default function WaterConsumed() {
     setEntries(state.entries);
   };
 
-  const fillHeight = fillAnim.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, CIRCLE_SIZE],
-  });
-
   if (isLoading) {
     return (
       <SafeAreaView
@@ -136,46 +121,11 @@ export default function WaterConsumed() {
           </Pressable>
         </View>
 
-        <View
-          style={{
-            width: CIRCLE_SIZE,
-            height: CIRCLE_SIZE,
-            borderRadius: CIRCLE_SIZE / 2,
-            backgroundColor: theme.colors.surfaceAlt,
-            borderWidth: 2,
-            borderColor: theme.colors.primary,
-            alignSelf: "center",
-            overflow: "hidden",
-            marginBottom: theme.spacing.lg,
-          }}
-        >
-          <Animated.View
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: fillHeight,
-              backgroundColor: theme.colors.primary,
-            }}
-          />
-          <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-          >
-            <Text style={{ color: theme.colors.text, ...theme.text.h1 }}>
-              {percentage}%
-            </Text>
-            <Text
-              style={{
-                color: theme.colors.text,
-                marginTop: theme.spacing.xs,
-                ...theme.text.caption,
-              }}
-            >
-              {total} / {WATER_GOAL_ML} ml
-            </Text>
-          </View>
-        </View>
+        <WaterProgressCircle
+          percentage={percentage}
+          total={total}
+          goal={WATER_GOAL_ML}
+        />
 
         {goalReached ? (
           <Card
@@ -253,43 +203,7 @@ export default function WaterConsumed() {
           <EmptyState message="Nessuna quantità registrata oggi" />
         ) : (
           sortedEntries.map((entry) => (
-            <Card
-              key={entry.id}
-              variant="flat"
-              style={{
-                marginBottom: theme.spacing.sm,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View>
-                <Text
-                  style={{
-                    color: theme.colors.text,
-                    ...theme.text.body,
-                    fontWeight: "700",
-                  }}
-                >
-                  {entry.quantita} ml
-                </Text>
-                <Text
-                  style={{
-                    color: theme.colors.textMuted,
-                    ...theme.text.caption,
-                  }}
-                >
-                  {entry.orario}
-                </Text>
-              </View>
-              <Pressable onPress={() => handleRemove(entry.id)} hitSlop={8}>
-                <Ionicons
-                  name="trash-outline"
-                  size={20}
-                  color={theme.colors.error}
-                />
-              </Pressable>
-            </Card>
+            <WaterEntryRow key={entry.id} entry={entry} onRemove={handleRemove} />
           ))
         )}
       </ScrollView>

@@ -134,8 +134,9 @@ Navigazione principale a **tab** (`(tabs)/`):
   alle sezioni.
 - **Attività giornaliere** (`daily-activity`) — elenco attività con filtri, creazione,
   completamento ed eliminazione; lista attività recenti.
-- **Appuntamenti** (`appointments`) — elenco appuntamenti e form per crearne di nuovi
-  (`new.tsx`).
+- **Appuntamenti** (`appointments`) — elenco appuntamenti con vista Lista e vista Calendario
+  (selezione giorno), ricerca, filtro per stato, dettaglio, form per crearne di nuovi
+  (`new.tsx`) e modifica di un appuntamento esistente (`add-update.tsx`).
 - **Acqua consumata** (`water-consumed`) — tracciamento dei bicchieri/quantità d'acqua con
   progresso verso l'obiettivo giornaliero.
 - **Statistiche settimanali** (`weekly-statistics`) — riepilogo settimanale con grafico a
@@ -160,7 +161,9 @@ Schermate accessorie (fuori dalle tab):
 - ✅ **Sessione persistente** su AsyncStorage (login mantenuto dopo il riavvio).
 - ✅ **Route protette**: redirect a login se non autenticati, gestito nei `_layout.tsx`.
 - ✅ **Attività giornaliere**: creazione, completamento, filtri, eliminazione, persistenza.
-- ✅ **Appuntamenti**: elenco e creazione con campo data (`DateField`).
+- ✅ **Appuntamenti**: calendario mensile con selezione giorno, elenco appuntamenti del
+  giorno scelto, ricerca, filtro per stato, dettaglio, creazione (`DateField`, impossibile
+  prenotare date passate) e **modifica** (data/ora/note) di un appuntamento esistente.
 - ✅ **Consumo d'acqua**: tracciamento e progresso, persistenza.
 - ✅ **Statistiche settimanali** con grafico a barre (`BarChart`).
 - ✅ **Notifiche**: elenco, conteggio non lette, gestione elementi, persistenza.
@@ -180,7 +183,6 @@ Schermate accessorie (fuori dalle tab):
 - ⚠️ **Recupero password** solo simulato: nessun invio email effettivo.
 - ⚠️ **Accesso biometrico** e **lingua** nelle preferenze sono presenti come impostazioni ma
   non collegati a un comportamento reale del dispositivo.
-- ⚠️ **Modifica di un appuntamento esistente**: al momento è disponibile la sola creazione.
 - ⚠️ Nessun **test automatico** incluso.
 - ⚠️ Nessuna **build APK/IPA** di produzione fornita (no EAS, come da vincoli del progetto).
 

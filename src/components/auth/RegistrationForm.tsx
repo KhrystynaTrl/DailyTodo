@@ -1,16 +1,6 @@
 import { router } from "expo-router";
 import React, { useRef, useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Pressable, StyleSheet, Text, TextInput } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import spacing from "../../theme/spacing";
@@ -18,7 +8,7 @@ import { isRequired, isValidEmail, minLength } from "../../utils/validators";
 import AppButton from "../ui/AppButton";
 import AppTextField from "../ui/AppTextField";
 import PasswordField from "../ui/PasswordField";
-import AuthHeader from "./AuthHeader";
+import AuthScreenShell from "./AuthScreenShell";
 
 export default function RegistrationForm() {
   const { theme } = useTheme();
@@ -126,121 +116,95 @@ export default function RegistrationForm() {
   };
 
   return (
-    <Pressable
-      accessible={false}
-      style={[styles.container, { backgroundColor: theme.colors.surfaceAlt }]}
-    >
-      <KeyboardAvoidingView
-        style={styles.keyboardAvoidingView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <ScrollView contentContainerStyle={styles.form}>
-            <AuthHeader />
+    <AuthScreenShell scrollable>
+      <AppTextField
+        placeholder="Nome"
+        value={name}
+        onChangeText={setName}
+        onBlur={validateName}
+        error={nameError}
+        returnKeyType="next"
+        onSubmitEditing={() => surnameRef.current?.focus()}
+      />
 
-            <AppTextField
-              placeholder="Nome"
-              value={name}
-              onChangeText={setName}
-              onBlur={validateName}
-              error={nameError}
-              returnKeyType="next"
-              onSubmitEditing={() => surnameRef.current?.focus()}
-            />
+      <AppTextField
+        ref={surnameRef}
+        placeholder="Cognome"
+        value={surname}
+        onChangeText={setSurname}
+        onBlur={validateSurname}
+        error={surnameError}
+        returnKeyType="next"
+        onSubmitEditing={() => emailRef.current?.focus()}
+      />
 
-            <AppTextField
-              ref={surnameRef}
-              placeholder="Cognome"
-              value={surname}
-              onChangeText={setSurname}
-              onBlur={validateSurname}
-              error={surnameError}
-              returnKeyType="next"
-              onSubmitEditing={() => emailRef.current?.focus()}
-            />
+      <AppTextField
+        ref={emailRef}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        onBlur={validateEmailAddress}
+        error={emailError}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        returnKeyType="next"
+        onSubmitEditing={() => passwordRef.current?.focus()}
+      />
 
-            <AppTextField
-              ref={emailRef}
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              onBlur={validateEmailAddress}
-              error={emailError}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              returnKeyType="next"
-              onSubmitEditing={() => passwordRef.current?.focus()}
-            />
+      <PasswordField
+        ref={passwordRef}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        onBlur={validatePassword}
+        error={passwordError}
+        returnKeyType="next"
+        onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+      />
 
-            <PasswordField
-              ref={passwordRef}
-              placeholder="Password"
-              value={password}
-              onChangeText={setPassword}
-              onBlur={validatePassword}
-              error={passwordError}
-              returnKeyType="next"
-              onSubmitEditing={() => confirmPasswordRef.current?.focus()}
-            />
+      <PasswordField
+        ref={confirmPasswordRef}
+        placeholder="Conferma password"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        onBlur={validateConfirmPassword}
+        error={confirmPasswordError}
+        returnKeyType="done"
+        onSubmitEditing={() => handleRegister()}
+      />
 
-            <PasswordField
-              ref={confirmPasswordRef}
-              placeholder="Conferma password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              onBlur={validateConfirmPassword}
-              error={confirmPasswordError}
-              returnKeyType="done"
-              onSubmitEditing={() => handleRegister()}
-            />
+      {submitError ? (
+        <Text
+          style={[
+            { color: theme.colors.error, ...theme.text.caption },
+            styles.errorText,
+          ]}
+        >
+          {submitError}
+        </Text>
+      ) : null}
 
-            {submitError ? (
-              <Text
-                style={[
-                  { color: theme.colors.error, ...theme.text.caption },
-                  styles.errorText,
-                ]}
-              >
-                {submitError}
-              </Text>
-            ) : null}
+      <AppButton
+        title="Registrati"
+        onPress={handleRegister}
+        loading={isLoading}
+      />
 
-            <AppButton
-              title="Registrati"
-              onPress={handleRegister}
-              loading={isLoading}
-            />
-
-            <Pressable onPress={() => router.back()}>
-              <Text
-                style={[
-                  { color: theme.colors.primary, ...theme.text.link },
-                  styles.linkText,
-                ]}
-              >
-                Hai già un account? Accedi
-              </Text>
-            </Pressable>
-          </ScrollView>
-        </SafeAreaView>
-      </KeyboardAvoidingView>
-    </Pressable>
+      <Pressable onPress={() => router.back()}>
+        <Text
+          style={[
+            { color: theme.colors.primary, ...theme.text.link },
+            styles.linkText,
+          ]}
+        >
+          Hai già un account? Accedi
+        </Text>
+      </Pressable>
+    </AuthScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-  },
-  form: {
-    padding: spacing.lg,
-  },
   linkText: {
     textAlign: "center",
     marginTop: spacing.md,

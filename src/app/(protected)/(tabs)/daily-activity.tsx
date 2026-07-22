@@ -120,9 +120,9 @@ export default function DailyActivity() {
   if (isLoading) {
     return (
       <SafeAreaView
-      edges={["left", "right"]}
-      style={{ flex: 1, backgroundColor: theme.colors.background }}
-    >
+        edges={["left", "right"]}
+        style={{ flex: 1, backgroundColor: theme.colors.background }}
+      >
         <LoadingState message="Caricamento attività..." />
       </SafeAreaView>
     );

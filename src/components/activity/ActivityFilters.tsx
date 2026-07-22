@@ -1,8 +1,9 @@
 import React from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { Activity } from "../../mocks/activities.mock";
 import AppTextField from "../ui/AppTextField";
+import ChipSelector from "../ui/ChipSelector";
 
 export type StatusFilter = "tutte" | "completate" | "da-completare";
 export type CategoryFilter = "tutte" | Activity["categoria"];
@@ -16,53 +17,27 @@ type ActivityFiltersProps = {
   onSearchChange: (search: string) => void;
 };
 
-const statusOptions: { value: StatusFilter; label: string }[] = [
-  { value: "tutte", label: "Tutte" },
-  { value: "da-completare", label: "Da fare" },
-  { value: "completate", label: "Completate" },
+const statusOptions: StatusFilter[] = ["tutte", "da-completare", "completate"];
+const statusLabel: Record<StatusFilter, string> = {
+  tutte: "Tutte",
+  "da-completare": "Da fare",
+  completate: "Completate",
+};
+
+const categoryOptions: CategoryFilter[] = [
+  "tutte",
+  "allenamento",
+  "salute",
+  "alimentazione",
+  "altro",
 ];
-
-const categoryOptions: { value: CategoryFilter; label: string }[] = [
-  { value: "tutte", label: "Tutte" },
-  { value: "allenamento", label: "Allenamento" },
-  { value: "salute", label: "Salute" },
-  { value: "alimentazione", label: "Alimentazione" },
-  { value: "altro", label: "Altro" },
-];
-
-function Chip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  const { theme } = useTheme();
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        backgroundColor: selected ? theme.colors.primary : theme.colors.surface,
-        borderRadius: theme.radii.md,
-        paddingVertical: theme.spacing.xs,
-        paddingHorizontal: theme.spacing.sm,
-        marginRight: theme.spacing.xs,
-      }}
-    >
-      <Text
-        style={{
-          color: selected ? theme.colors.onPrimary : theme.colors.text,
-          ...theme.text.caption,
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
+const categoryLabel: Record<CategoryFilter, string> = {
+  tutte: "Tutte",
+  allenamento: "Allenamento",
+  salute: "Salute",
+  alimentazione: "Alimentazione",
+  altro: "Altro",
+};
 
 export default function ActivityFilters({
   status,
@@ -83,26 +58,22 @@ export default function ActivityFilters({
         containerStyle={{ width: "100%" }}
       />
 
-      <View style={{ flexDirection: "row", marginBottom: theme.spacing.sm }}>
-        {statusOptions.map((option) => (
-          <Chip
-            key={option.value}
-            label={option.label}
-            selected={status === option.value}
-            onPress={() => onStatusChange(option.value)}
-          />
-        ))}
+      <View style={{ marginBottom: theme.spacing.sm }}>
+        <ChipSelector
+          options={statusOptions}
+          labels={statusLabel}
+          value={status}
+          onChange={onStatusChange}
+        />
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {categoryOptions.map((option) => (
-          <Chip
-            key={option.value}
-            label={option.label}
-            selected={category === option.value}
-            onPress={() => onCategoryChange(option.value)}
-          />
-        ))}
+        <ChipSelector
+          options={categoryOptions}
+          labels={categoryLabel}
+          value={category}
+          onChange={onCategoryChange}
+        />
       </ScrollView>
     </View>
   );

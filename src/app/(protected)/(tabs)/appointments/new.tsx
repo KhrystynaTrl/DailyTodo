@@ -1,31 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AppButton from "../../../../components/ui/AppButton";
+import AppointmentConfirmation from "../../../../components/appointments/AppointmentConfirmation";
+import TimeSlotPicker from "../../../../components/appointments/TimeSlotPicker";
+import {
+  AppointmentWizardStep,
+  TOTAL_APPOINTMENT_STEPS,
+  useNewAppointmentWizard,
+} from "../../../../components/appointments/useNewAppointmentWizard";
 import AppTextField from "../../../../components/ui/AppTextField";
 import Card from "../../../../components/ui/Card";
 import DateField from "../../../../components/ui/DateField";
 import LoadingState from "../../../../components/ui/LoadingState";
 import ProgressBar from "../../../../components/ui/ProgressBar";
 import { useTheme } from "../../../../context/ThemeContext";
-import { Appointment } from "../../../../mocks/appointments.mock";
-import { Professional } from "../../../../mocks/professionals.mock";
-import { ServiceType } from "../../../../mocks/services.mock";
-import {
-  addAppointment,
-  getAvailableSlots,
-  getProfessionals,
-  getServiceTypes,
-} from "../../../../services/appointments.service";
-import { parseDate } from "../../../../utils/date";
-import { isRequired, isValidDate } from "../../../../utils/validators";
 
-type Step = 1 | 2 | 3 | 4 | 5 | 6;
-const TOTAL_STEPS = 6;
-
-const stepTitle: Record<Step, string> = {
+const stepTitle: Record<AppointmentWizardStep, string> = {
   1: "Scegli il servizio",
   2: "Scegli il professionista",
   3: "Scegli la data",
@@ -34,208 +25,45 @@ const stepTitle: Record<Step, string> = {
   6: "Riepilogo",
 };
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
 export default function NewAppointment() {
   const { theme } = useTheme();
-
-  const [step, setStep] = useState<Step>(1);
-
-  const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
-  const [isLoadingServiceTypes, setIsLoadingServiceTypes] = useState(true);
-  const [selectedService, setSelectedService] = useState<ServiceType | null>(
-    null,
-  );
-
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [isLoadingProfessionals, setIsLoadingProfessionals] = useState(false);
-  const [selectedProfessional, setSelectedProfessional] =
-    useState<Professional | null>(null);
-
-  const [date, setDate] = useState("");
-  const [dateError, setDateError] = useState("");
-
-  const [slots, setSlots] = useState<{ time: string; available: boolean }[]>(
-    [],
-  );
-  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
-  const [selectedTime, setSelectedTime] = useState("");
-
-  const [note, setNote] = useState("");
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [createdAppointment, setCreatedAppointment] =
-    useState<Appointment | null>(null);
-
-  useEffect(() => {
-    getServiceTypes()
-      .then(setServiceTypes)
-      .finally(() => setIsLoadingServiceTypes(false));
-  }, []);
-
-  useEffect(() => {
-    if (!selectedService) return;
-    setIsLoadingProfessionals(true);
-    getProfessionals(selectedService.id)
-      .then(setProfessionals)
-      .finally(() => setIsLoadingProfessionals(false));
-  }, [selectedService]);
-
-  useEffect(() => {
-    if (!selectedProfessional || !isValidDate(date)) return;
-    setIsLoadingSlots(true);
-    getAvailableSlots(selectedProfessional.nome, date)
-      .then(setSlots)
-      .finally(() => setIsLoadingSlots(false));
-  }, [selectedProfessional, date]);
-
-  const selectService = (service: ServiceType) => {
-    if (selectedService?.id !== service.id) {
-      setSelectedProfessional(null);
-      setDate("");
-      setSelectedTime("");
-    }
-    setSelectedService(service);
-  };
-
-  const selectProfessional = (professional: Professional) => {
-    if (selectedProfessional?.id !== professional.id) {
-      setDate("");
-      setSelectedTime("");
-    }
-    setSelectedProfessional(professional);
-  };
-
-  const handleDateChange = (value: string) => {
-    setDate(value);
-    setSelectedTime("");
-  };
-
-  const validateDate = () => {
-    if (!isRequired(date) || !isValidDate(date)) {
-      setDateError("Inserisci una data valida (GG/MM/AAAA)");
-      return false;
-    }
-    const chosen = parseDate(date);
-    chosen.setHours(0, 0, 0, 0);
-    if (chosen.getTime() < today.getTime()) {
-      setDateError("Non puoi scegliere una data precedente a oggi");
-      return false;
-    }
-    setDateError("");
-    return true;
-  };
-
-  const canContinue = (): boolean => {
-    switch (step) {
-      case 1:
-        return selectedService !== null;
-      case 2:
-        return selectedProfessional !== null;
-      case 3:
-        return isRequired(date) && isValidDate(date);
-      case 4:
-        return selectedTime !== "";
-      default:
-        return true;
-    }
-  };
-
-  const handleNext = () => {
-    if (step === 3 && !validateDate()) return;
-    setStep((s) => (Math.min(s + 1, TOTAL_STEPS) as Step));
-  };
-
-  const handleBack = () => {
-    if (step === 1) {
-      router.back();
-      return;
-    }
-    setStep((s) => (Math.max(s - 1, 1) as Step));
-  };
-
-  const handleConfirm = async () => {
-    if (!selectedService || !selectedProfessional) return;
-
-    setSubmitError("");
-    try {
-      setIsSubmitting(true);
-      const created = await addAppointment({
-        titolo: selectedService.nome,
-        professionista: selectedProfessional.nome,
-        tipologia: selectedService.nome,
-        data: date,
-        ora: selectedTime,
-        durata: selectedService.durata,
-        stato: "confermato",
-        note: note || undefined,
-      });
-      setCreatedAppointment(created);
-    } catch (error) {
-      setSubmitError(
-        error instanceof Error ? error.message : "Errore durante la prenotazione",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const {
+    step,
+    today,
+    serviceTypes,
+    isLoadingServiceTypes,
+    selectedService,
+    selectService,
+    professionals,
+    isLoadingProfessionals,
+    selectedProfessional,
+    selectProfessional,
+    date,
+    dateError,
+    handleDateChange,
+    validateDate,
+    slots,
+    isLoadingSlots,
+    selectedTime,
+    setSelectedTime,
+    note,
+    setNote,
+    isSubmitting,
+    submitError,
+    createdAppointment,
+    canContinue,
+    handleNext,
+    handleBack,
+    handleConfirm,
+  } = useNewAppointmentWizard();
 
   if (createdAppointment) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            padding: theme.spacing.lg,
-          }}
-        >
-          <Ionicons
-            name="checkmark-circle"
-            size={72}
-            color={theme.colors.primary}
-          />
-          <Text
-            style={{
-              color: theme.colors.text,
-              textAlign: "center",
-              marginTop: theme.spacing.lg,
-              ...theme.text.h1,
-            }}
-          >
-            Appuntamento confermato!
-          </Text>
-          <Text
-            style={{
-              color: theme.colors.textMuted,
-              textAlign: "center",
-              marginTop: theme.spacing.sm,
-              marginBottom: theme.spacing.xl,
-              ...theme.text.body,
-            }}
-          >
-            {createdAppointment.titolo} con {createdAppointment.professionista}
-            {"\n"}
-            {createdAppointment.data} · {createdAppointment.ora}
-          </Text>
-
-          <AppButton
-            title="Vedi appuntamento"
-            onPress={() => router.replace("/appointments")}
-          />
-          <Pressable
-            onPress={() => router.replace("/home")}
-            style={{ marginTop: theme.spacing.md }}
-          >
-            <Text style={{ color: theme.colors.primary, ...theme.text.link }}>
-              Torna alla Home
-            </Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <AppointmentConfirmation
+        appointment={createdAppointment}
+        onViewAppointment={() => router.replace("/appointments")}
+        onGoHome={() => router.replace("/home")}
+      />
     );
   }
 
@@ -264,7 +92,7 @@ export default function NewAppointment() {
       </View>
 
       <View style={{ paddingHorizontal: theme.spacing.lg, paddingTop: theme.spacing.md }}>
-        <ProgressBar progress={step / TOTAL_STEPS} />
+        <ProgressBar progress={step / TOTAL_APPOINTMENT_STEPS} />
         <Text
           style={{
             color: theme.colors.textMuted,
@@ -272,41 +100,37 @@ export default function NewAppointment() {
             ...theme.text.caption,
           }}
         >
-          Passo {step} di {TOTAL_STEPS} · {stepTitle[step]}
+          Passo {step} di {TOTAL_APPOINTMENT_STEPS} · {stepTitle[step]}
         </Text>
       </View>
 
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
         {step === 1 ? (
-          isLoadingServiceTypes ? (
-            <LoadingState message="Caricamento servizi..." />
-          ) : (
-            serviceTypes.map((service) => (
-              <SelectableRow
-                key={service.id}
-                title={service.nome}
-                subtitle={`${service.durata} minuti`}
-                selected={selectedService?.id === service.id}
-                onPress={() => selectService(service)}
-              />
-            ))
-          )
+          <SelectionStep
+            isLoading={isLoadingServiceTypes}
+            loadingMessage="Caricamento servizi..."
+            items={serviceTypes}
+            keyExtractor={(service) => service.id}
+            getTitle={(service) => service.nome}
+            getSubtitle={(service) => `${service.durata} minuti`}
+            isSelected={(service) => selectedService?.id === service.id}
+            onSelect={selectService}
+          />
         ) : null}
 
         {step === 2 ? (
-          isLoadingProfessionals ? (
-            <LoadingState message="Caricamento professionisti..." />
-          ) : (
-            professionals.map((professional) => (
-              <SelectableRow
-                key={professional.id}
-                title={professional.nome}
-                subtitle={professional.specializzazione}
-                selected={selectedProfessional?.id === professional.id}
-                onPress={() => selectProfessional(professional)}
-              />
-            ))
-          )
+          <SelectionStep
+            isLoading={isLoadingProfessionals}
+            loadingMessage="Caricamento professionisti..."
+            items={professionals}
+            keyExtractor={(professional) => professional.id}
+            getTitle={(professional) => professional.nome}
+            getSubtitle={(professional) => professional.specializzazione}
+            isSelected={(professional) =>
+              selectedProfessional?.id === professional.id
+            }
+            onSelect={selectProfessional}
+          />
         ) : null}
 
         {step === 3 ? (
@@ -324,45 +148,11 @@ export default function NewAppointment() {
           isLoadingSlots ? (
             <LoadingState message="Caricamento orari disponibili..." />
           ) : (
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                gap: theme.spacing.xs,
-              }}
-            >
-              {slots.map((slot) => (
-                <Pressable
-                  key={slot.time}
-                  disabled={!slot.available}
-                  onPress={() => setSelectedTime(slot.time)}
-                  style={{
-                    backgroundColor:
-                      selectedTime === slot.time
-                        ? theme.colors.primary
-                        : slot.available
-                          ? theme.colors.surface
-                          : theme.colors.surfaceAlt,
-                    opacity: slot.available ? 1 : 0.4,
-                    borderRadius: theme.radii.md,
-                    paddingVertical: theme.spacing.sm,
-                    paddingHorizontal: theme.spacing.md,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color:
-                        selectedTime === slot.time
-                          ? theme.colors.onPrimary
-                          : theme.colors.text,
-                      ...theme.text.body,
-                    }}
-                  >
-                    {slot.time}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            <TimeSlotPicker
+              slots={slots}
+              value={selectedTime}
+              onChange={setSelectedTime}
+            />
           )
         ) : null}
 
@@ -429,7 +219,7 @@ export default function NewAppointment() {
           </Text>
         </Pressable>
 
-        {step < TOTAL_STEPS ? (
+        {step < TOTAL_APPOINTMENT_STEPS ? (
           <Pressable
             onPress={handleNext}
             disabled={!canContinue()}
@@ -468,6 +258,45 @@ export default function NewAppointment() {
         )}
       </View>
     </SafeAreaView>
+  );
+}
+
+// Step 1 e 2 sono liste selezionabili identiche a parte i dati (servizi vs
+// professionisti): un solo componente generico evita di duplicare il
+// rendering "loading / elenco selezionabile".
+function SelectionStep<T>({
+  isLoading,
+  loadingMessage,
+  items,
+  keyExtractor,
+  getTitle,
+  getSubtitle,
+  isSelected,
+  onSelect,
+}: {
+  isLoading: boolean;
+  loadingMessage: string;
+  items: T[];
+  keyExtractor: (item: T) => string | number;
+  getTitle: (item: T) => string;
+  getSubtitle?: (item: T) => string | undefined;
+  isSelected: (item: T) => boolean;
+  onSelect: (item: T) => void;
+}) {
+  if (isLoading) return <LoadingState message={loadingMessage} />;
+
+  return (
+    <>
+      {items.map((item) => (
+        <SelectableRow
+          key={keyExtractor(item)}
+          title={getTitle(item)}
+          subtitle={getSubtitle?.(item)}
+          selected={isSelected(item)}
+          onPress={() => onSelect(item)}
+        />
+      ))}
+    </>
   );
 }
 

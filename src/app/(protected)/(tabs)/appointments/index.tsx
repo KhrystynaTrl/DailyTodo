@@ -6,6 +6,7 @@ import AppointmentCard from "../../../../components/appointments/AppointmentCard
 import AppointmentsCalendar from "../../../../components/appointments/AppointmentsCalendar";
 import AppTextField from "../../../../components/ui/AppTextField";
 import Card from "../../../../components/ui/Card";
+import ChipSelector from "../../../../components/ui/ChipSelector";
 import ConfirmationModal from "../../../../components/ui/ConfirmationModal";
 import EmptyState from "../../../../components/ui/EmptyState";
 import Skeleton from "../../../../components/ui/Skeleton";
@@ -26,12 +27,18 @@ const viewModeOptions: { value: ViewMode; label: string }[] = [
   { value: "calendario", label: "Calendario" },
 ];
 
-const statusOptions: { value: StatusFilter; label: string }[] = [
-  { value: "tutti", label: "Tutti" },
-  { value: "confermato", label: "Confermati" },
-  { value: "in attesa", label: "In attesa" },
-  { value: "annullato", label: "Annullati" },
+const statusOptions: StatusFilter[] = [
+  "tutti",
+  "confermato",
+  "in attesa",
+  "annullato",
 ];
+const statusLabel: Record<StatusFilter, string> = {
+  tutti: "Tutti",
+  confermato: "Confermati",
+  "in attesa": "In attesa",
+  annullato: "Annullati",
+};
 
 export default function AppointmentsList() {
   const { theme } = useTheme();
@@ -204,41 +211,13 @@ export default function AppointmentsList() {
           containerStyle={{ width: "100%" }}
         />
 
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            gap: theme.spacing.xs,
-            marginBottom: theme.spacing.md,
-          }}
-        >
-          {statusOptions.map((option) => (
-            <Pressable
-              key={option.value}
-              onPress={() => setStatus(option.value)}
-              style={{
-                backgroundColor:
-                  status === option.value
-                    ? theme.colors.primary
-                    : theme.colors.surface,
-                borderRadius: theme.radii.md,
-                paddingVertical: theme.spacing.xs,
-                paddingHorizontal: theme.spacing.sm,
-              }}
-            >
-              <Text
-                style={{
-                  color:
-                    status === option.value
-                      ? theme.colors.onPrimary
-                      : theme.colors.text,
-                  ...theme.text.caption,
-                }}
-              >
-                {option.label}
-              </Text>
-            </Pressable>
-          ))}
+        <View style={{ marginBottom: theme.spacing.md }}>
+          <ChipSelector
+            options={statusOptions}
+            labels={statusLabel}
+            value={status}
+            onChange={setStatus}
+          />
         </View>
 
         {viewMode === "calendario" ? (
