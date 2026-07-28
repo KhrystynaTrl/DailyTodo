@@ -47,6 +47,7 @@ const emptyForm = {
   data: "",
   ora: "",
   priorita: "media" as Activity["priorita"],
+  durataMinuti: "",
 };
 
 export default function ActivityForm({
@@ -66,6 +67,7 @@ export default function ActivityForm({
   const [dataError, setDataError] = useState("");
   const [ora, setOra] = useState(emptyForm.ora);
   const [priorita, setPriorita] = useState(emptyForm.priorita);
+  const [durataMinuti, setDurataMinuti] = useState(emptyForm.durataMinuti);
 
   useEffect(() => {
     if (!visible) return;
@@ -77,6 +79,11 @@ export default function ActivityForm({
       setData(initialActivity.data);
       setOra(initialActivity.ora ?? "");
       setPriorita(initialActivity.priorita);
+      setDurataMinuti(
+        initialActivity.durataMinuti !== undefined
+          ? String(initialActivity.durataMinuti)
+          : "",
+      );
     } else {
       setTitolo(emptyForm.titolo);
       setDescrizione(emptyForm.descrizione);
@@ -84,6 +91,7 @@ export default function ActivityForm({
       setData(emptyForm.data);
       setOra(emptyForm.ora);
       setPriorita(emptyForm.priorita);
+      setDurataMinuti(emptyForm.durataMinuti);
     }
 
     setTitoloError("");
@@ -122,6 +130,7 @@ export default function ActivityForm({
       ora: ora || undefined,
       completata: initialActivity?.completata ?? false,
       priorita,
+      durataMinuti: durataMinuti ? Number(durataMinuti) : undefined,
     });
   };
 
@@ -208,6 +217,13 @@ export default function ActivityForm({
             onChange={setPriorita}
           />
         </View>
+
+        <AppTextField
+          placeholder="Durata (minuti, opzionale)"
+          value={durataMinuti}
+          onChangeText={(text) => setDurataMinuti(text.replace(/[^0-9]/g, ""))}
+          keyboardType="numeric"
+        />
       </ScrollView>
 
       <View

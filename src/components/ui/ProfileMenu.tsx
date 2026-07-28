@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import OrientamentoMedicoIcon from "../../../assets/images/icon-ex/orientamento-medico.svg";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import Avatar from "./Avatar";
@@ -48,7 +49,8 @@ export default function ProfileMenu() {
             }}
           >
             <TopBarMenuItem
-              icon="person-outline"
+              svgIcon={OrientamentoMedicoIcon}
+              iconSize={32}
               label="Profilo"
               onPress={() => {
                 setVisible(false);
@@ -56,14 +58,17 @@ export default function ProfileMenu() {
               }}
             />
             <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-            <TopBarMenuItem
-              icon="settings-outline"
-              label="Impostazioni"
-              onPress={() => {
-                setVisible(false);
-                router.push("/preferences");
-              }}
-            />
+
+            {
+              <TopBarMenuItem
+                icon="settings-outline"
+                label="Impostazioni"
+                onPress={() => {
+                  setVisible(false);
+                  router.push("/preferences");
+                }}
+              />
+            }
           </View>
         </Pressable>
       </Modal>

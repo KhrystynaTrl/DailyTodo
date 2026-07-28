@@ -60,7 +60,7 @@ export default function DailyActivity() {
 
   const handleToggle = async (activity: Activity) => {
     try {
-      const updated = await toggleActivityCompletata(activity.id);
+      const updated = await toggleActivityCompletata(activity);
       setActivities((prev) =>
         prev.map((a) => (a.id === updated.id ? updated : a)),
       );

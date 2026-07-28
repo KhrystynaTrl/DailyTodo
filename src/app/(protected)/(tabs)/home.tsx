@@ -41,13 +41,19 @@ export default function Home() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadData = useCallback(async () => {
-    const [dailyStats, activities, appointments, waterState] =
-      await Promise.all([
+    let dailyStats, activities, appointments, waterState;
+    try {
+      [dailyStats, activities, appointments, waterState] = await Promise.all([
         getTodayStats(),
         getActivities(),
         getAppointments(),
         getWaterState(),
       ]);
+    } catch {
+      // Sessione scaduta o token mancante: onSessionExpired (AuthContext) ha
+      // già forzato il logout, il redirect a login lo gestisce _layout.tsx.
+      return;
+    }
 
     setStats(dailyStats);
     setWaterMl(

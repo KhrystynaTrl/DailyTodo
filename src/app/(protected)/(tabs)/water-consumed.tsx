@@ -11,12 +11,11 @@ import WaterProgressCircle from "../../../components/water/WaterProgressCircle";
 import { useTheme } from "../../../context/ThemeContext";
 import {
   WATER_GOAL_ML,
+  WaterEntry,
   addWaterEntry,
   getWaterState,
   removeWaterEntry,
-  resetWaterState,
 } from "../../../services/water.service";
-import { WaterEntry } from "../../../storage/water.storage";
 
 const PRESET_AMOUNTS = [150, 250, 500];
 
@@ -80,11 +79,6 @@ export default function WaterConsumed() {
     setEntries(state.entries);
   };
 
-  const handleReset = async () => {
-    const state = await resetWaterState();
-    setEntries(state.entries);
-  };
-
   if (isLoading) {
     return (
       <SafeAreaView
@@ -101,25 +95,15 @@ export default function WaterConsumed() {
       style={{ flex: 1, backgroundColor: theme.colors.background }}
     >
       <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
-        <View
+        <Text
           style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
+            color: theme.colors.text,
+            ...theme.text.h1,
             marginBottom: theme.spacing.lg,
           }}
         >
-          <Text style={{ color: theme.colors.text, ...theme.text.h1 }}>
-            Acqua
-          </Text>
-          <Pressable onPress={handleReset}>
-            <Text
-              style={{ color: theme.colors.textMuted, ...theme.text.caption }}
-            >
-              Reset giornata (demo)
-            </Text>
-          </Pressable>
-        </View>
+          Acqua
+        </Text>
 
         <WaterProgressCircle
           percentage={percentage}

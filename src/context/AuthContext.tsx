@@ -5,26 +5,31 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { User, users } from "../mocks/user.mock";
+import { setOnSessionExpired } from "../services/api.client";
+import {
+  LoginPayload,
+  login as loginRequest,
+  register as registerRequest,
+} from "../services/auth.service";
 import {
   ProfileUpdate,
-  register as registerUser,
   updatePassword as updateUserPassword,
   updateProfile as updateUserProfile,
-} from "../services/user.service";
+} from "../services/profile.service";
 import {
   SessionUser,
   clearSession,
   loadSession,
   saveSession,
 } from "../storage/session.storage";
+import { clearTokens, saveTokens } from "../storage/token.storage";
 
-type LoginPayload = {
+type RegisterPayload = {
+  name: string;
+  surname: string;
   email: string;
   password: string;
 };
-
-type RegisterPayload = Omit<User, "id">;
 
 type AuthContextType = {
   user: SessionUser | null;
@@ -46,7 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
 
-  // Ripristina la sessione simulata salvata al precedente avvio.
+  // Ripristina la sessione salvata al precedente avvio.
   useEffect(() => {
     loadSession()
       .then((saved) => {
@@ -55,27 +60,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsHydrating(false));
   }, []);
 
-  const login = async ({ email, password }: LoginPayload) => {
-    const userFound = users.filter(
-      (user) => user.email === email && user.password === password,
-    );
-    if (userFound.length > 0) {
-      setUser(userFound[0]);
-      await saveSession(userFound[0]);
-      return;
-    }
-    throw new Error("Credenziali non valide");
+  // Se il refresh token risulta scaduto/non valido durante una chiamata
+  // autenticata, forziamo il logout locale.
+  useEffect(() => {
+    setOnSessionExpired(() => {
+      setUser(null);
+      clearSession().catch(() => {});
+    });
+    return () => setOnSessionExpired(null);
+  }, []);
+
+  const login = async (payload: LoginPayload) => {
+    const { tokens, user: loggedInUser } = await loginRequest(payload);
+    await saveTokens(tokens);
+    setUser(loggedInUser);
+    await saveSession(loggedInUser);
   };
 
-  const register = async (payload: RegisterPayload) => {
-    const newUser = await registerUser(payload);
+  const register = async ({ name, surname, email, password }: RegisterPayload) => {
+    const { tokens, user: newUser } = await registerRequest({
+      email,
+      password,
+      firstName: name,
+      lastName: surname,
+    });
+    await saveTokens(tokens);
     setUser(newUser);
     await saveSession(newUser);
   };
 
   const updateProfile = async (changes: ProfileUpdate) => {
     if (!user) throw new Error("Utente non autenticato");
-    const updated = await updateUserProfile(user.id, changes);
+    const updated = await updateUserProfile(user, changes);
     setUser(updated);
     await saveSession(updated);
   };
@@ -85,12 +101,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     newPassword: string,
   ) => {
     if (!user) throw new Error("Utente non autenticato");
-    await updateUserPassword(user.email, currentPassword, newPassword);
+    await updateUserPassword(currentPassword, newPassword);
   };
 
   const logout = () => {
     setUser(null);
     clearSession().catch(() => {});
+    clearTokens().catch(() => {});
   };
 
   const value = useMemo(

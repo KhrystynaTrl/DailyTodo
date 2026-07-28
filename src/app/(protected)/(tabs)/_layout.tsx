@@ -3,6 +3,7 @@ import { Tabs, usePathname } from "expo-router";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import TopBar from "../../../components/ui/TopBar";
+
 import { useTheme } from "../../../context/ThemeContext";
 
 // Route principali su cui mostrare la TopBar fissa. I form interni (es. nuovo
@@ -87,11 +88,13 @@ export default function TabsLayout() {
                     : theme.colors.surfaceAlt,
                 }}
               >
-                <Ionicons
-                  name="home"
-                  size={20}
-                  color={focused ? theme.colors.onPrimary : theme.colors.text}
-                />
+                {
+                  <Ionicons
+                    name="home"
+                    size={20}
+                    color={focused ? theme.colors.onPrimary : theme.colors.text}
+                  />
+                }
               </View>
             ),
           }}

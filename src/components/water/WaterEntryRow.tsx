@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
-import { WaterEntry } from "../../storage/water.storage";
+import { WaterEntry } from "../../services/water.service";
 import Card from "../ui/Card";
 
 export default function WaterEntryRow({
