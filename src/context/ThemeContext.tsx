@@ -19,6 +19,7 @@ type ThemeContextType = {
   colorScheme: ColorScheme;
   override: ColorSchemeOverride;
   setOverride: (override: ColorSchemeOverride) => void;
+  hydrateFromServer: (override: ColorSchemeOverride) => void;
 };
 
 const ThemeContext = createContext<ThemeContextType | null>(null);
@@ -41,6 +42,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(THEME_STORAGE_KEY, value).catch(() => {});
   };
 
+  // Idrata il tema salvato sul backend (es. dopo login su un nuovo
+  // dispositivo). Non sovrascrive mai una preferenza già salvata in locale:
+  // AsyncStorage resta sempre la fonte di verità quando presente.
+  const hydrateFromServer = (value: ColorSchemeOverride) => {
+    AsyncStorage.getItem(THEME_STORAGE_KEY).then((saved) => {
+      if (saved) return;
+      setOverride(value);
+    });
+  };
+
   const colorScheme: ColorScheme =
     override === "system" ? (systemScheme ?? "light") : override;
 
@@ -50,6 +61,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       colorScheme,
       override,
       setOverride,
+      hydrateFromServer,
     }),
     [colorScheme, override],
   );

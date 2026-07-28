@@ -10,9 +10,8 @@ export interface WaterEntry {
 
 export interface WaterState {
   entries: WaterEntry[];
+  goalMl: number;
 }
-
-export const WATER_GOAL_ML = 2000;
 
 type BeWaterEntry = {
   id: number;
@@ -38,7 +37,7 @@ function toWaterEntry(be: BeWaterEntry): WaterEntry {
 
 export async function getWaterState(): Promise<WaterState> {
   const today = await apiFetch<BeWaterToday>("/api/water/today");
-  return { entries: today.entries.map(toWaterEntry) };
+  return { entries: today.entries.map(toWaterEntry), goalMl: today.goalMl };
 }
 
 export async function addWaterEntry(quantita: number): Promise<WaterState> {

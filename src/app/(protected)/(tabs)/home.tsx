@@ -23,7 +23,7 @@ import { DailyStats } from "../../../mocks/dailyStats.mock";
 import { getActivities } from "../../../services/activities.service";
 import { getAppointments } from "../../../services/appointments.service";
 import { getTodayStats } from "../../../services/dailyStats.service";
-import { WATER_GOAL_ML, getWaterState } from "../../../services/water.service";
+import { getWaterState } from "../../../services/water.service";
 import { isToday, parseDate } from "../../../utils/date";
 
 export default function Home() {
@@ -32,6 +32,7 @@ export default function Home() {
 
   const [stats, setStats] = useState<DailyStats | null>(null);
   const [waterMl, setWaterMl] = useState(0);
+  const [waterGoalMl, setWaterGoalMl] = useState(2000);
   const [todayActivities, setTodayActivities] = useState<Activity[]>([]);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [nextAppointment, setNextAppointment] = useState<Appointment | null>(
@@ -56,6 +57,7 @@ export default function Home() {
     }
 
     setStats(dailyStats);
+    setWaterGoalMl(waterState.goalMl);
     setWaterMl(
       waterState.entries.reduce((sum, entry) => sum + entry.quantita, 0),
     );
@@ -159,7 +161,7 @@ export default function Home() {
           }}
         >
           <StatCard label="Acqua" value={`${waterMl} ml`} style={{ flex: 1 }}>
-            <ProgressBar progress={waterMl / WATER_GOAL_ML} />
+            <ProgressBar progress={waterMl / waterGoalMl} />
           </StatCard>
           <StatCard
             label="Passi"

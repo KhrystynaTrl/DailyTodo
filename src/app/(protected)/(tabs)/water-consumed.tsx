@@ -10,7 +10,6 @@ import WaterEntryRow from "../../../components/water/WaterEntryRow";
 import WaterProgressCircle from "../../../components/water/WaterProgressCircle";
 import { useTheme } from "../../../context/ThemeContext";
 import {
-  WATER_GOAL_ML,
   WaterEntry,
   addWaterEntry,
   getWaterState,
@@ -23,6 +22,7 @@ export default function WaterConsumed() {
   const { theme } = useTheme();
 
   const [entries, setEntries] = useState<WaterEntry[]>([]);
+  const [goalMl, setGoalMl] = useState(2000);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
@@ -32,8 +32,8 @@ export default function WaterConsumed() {
     () => entries.reduce((sum, entry) => sum + entry.quantita, 0),
     [entries],
   );
-  const percentage = Math.min(100, Math.round((total / WATER_GOAL_ML) * 100));
-  const goalReached = total >= WATER_GOAL_ML;
+  const percentage = Math.min(100, Math.round((total / goalMl) * 100));
+  const goalReached = total >= goalMl;
 
   const sortedEntries = useMemo(
     () => [...entries].sort((a, b) => (a.orario < b.orario ? 1 : -1)),
@@ -42,7 +42,10 @@ export default function WaterConsumed() {
 
   useEffect(() => {
     getWaterState()
-      .then((state) => setEntries(state.entries))
+      .then((state) => {
+        setEntries(state.entries);
+        setGoalMl(state.goalMl);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -51,6 +54,7 @@ export default function WaterConsumed() {
     try {
       const state = await addWaterEntry(quantita);
       setEntries(state.entries);
+      setGoalMl(state.goalMl);
     } finally {
       setIsSaving(false);
     }
@@ -77,6 +81,7 @@ export default function WaterConsumed() {
   const handleRemove = async (id: number) => {
     const state = await removeWaterEntry(id);
     setEntries(state.entries);
+    setGoalMl(state.goalMl);
   };
 
   if (isLoading) {
@@ -108,7 +113,7 @@ export default function WaterConsumed() {
         <WaterProgressCircle
           percentage={percentage}
           total={total}
-          goal={WATER_GOAL_ML}
+          goal={goalMl}
         />
 
         {goalReached ? (

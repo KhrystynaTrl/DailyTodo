@@ -15,21 +15,17 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import {
-  getPreferences,
-  updatePreferences,
-} from "../../services/preferences.service";
-import {
   Language,
   Preferences,
   defaultPreferences,
-} from "../../storage/preferences.storage";
+  getPreferences,
+  updatePreferences,
+} from "../../services/preferences.service";
 
 const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
 
-type ThemeOption = "light" | "dark" | "system";
-
 export default function PreferencesScreen() {
-  const { theme, override, setOverride } = useTheme();
+  const { theme, setOverride } = useTheme();
   const { logout } = useAuth();
   const { showToast } = useToast();
 
@@ -40,14 +36,19 @@ export default function PreferencesScreen() {
 
   useEffect(() => {
     getPreferences()
-      .then(setPrefs)
+      .then((loaded) => {
+        setPrefs(loaded);
+        setOverride(loaded.theme);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
-  // Aggiorna lo stato, persiste in AsyncStorage e conferma con un toast.
+  // Aggiorna lo stato, persiste sul backend e conferma con un toast.
+  // Il tema va applicato subito anche a ThemeContext, non solo salvato.
   const update = (patch: Partial<Preferences>) => {
     const next = { ...prefs, ...patch };
     setPrefs(next);
+    if (patch.theme) setOverride(patch.theme);
     updatePreferences(next)
       .then(() => showToast("Preferenze salvate"))
       .catch(() => showToast("Errore nel salvataggio", "error"));
@@ -153,14 +154,14 @@ export default function PreferencesScreen() {
             isLast
             right={null}
           />
-          <SettingsPills<ThemeOption>
-            value={override}
+          <SettingsPills<Preferences["theme"]>
+            value={prefs.theme}
             options={[
               { key: "light", label: "Chiaro" },
               { key: "dark", label: "Scuro" },
               { key: "system", label: "Sistema" },
             ]}
-            onChange={setOverride}
+            onChange={(themeOption) => update({ theme: themeOption })}
           />
         </SettingsSection>
 

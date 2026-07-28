@@ -1,35 +1,14 @@
+// L'accesso biometrico è una feature simulata, per-dispositivo: non ha
+// equivalente sul backend (SettingsResponse), resta quindi in AsyncStorage.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const STORAGE_KEY = "dailytodo:preferences";
+const STORAGE_KEY = "dailytodo:biometric-enabled";
 
-export type Language = "it" | "en";
-
-export interface Preferences {
-  notificationsEnabled: boolean;
-  appointmentNotifications: boolean;
-  goalNotifications: boolean;
-  language: Language;
-  biometricEnabled: boolean;
-}
-
-export const defaultPreferences: Preferences = {
-  notificationsEnabled: true,
-  appointmentNotifications: true,
-  goalNotifications: true,
-  language: "it",
-  biometricEnabled: false,
-};
-
-export async function loadPreferences(): Promise<Preferences> {
+export async function loadBiometricEnabled(): Promise<boolean> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
-
-  if (!raw) return defaultPreferences;
-
-  // Uniamo ai default per tollerare preferenze salvate con versioni precedenti.
-  const parsed = JSON.parse(raw) as Partial<Preferences>;
-  return { ...defaultPreferences, ...parsed };
+  return raw === "true";
 }
 
-export async function savePreferences(preferences: Preferences): Promise<void> {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+export async function saveBiometricEnabled(value: boolean): Promise<void> {
+  await AsyncStorage.setItem(STORAGE_KEY, String(value));
 }

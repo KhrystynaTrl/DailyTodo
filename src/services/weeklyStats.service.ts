@@ -1,36 +1,54 @@
-import { WeekId, WeekStats, weeklyStats } from "../mocks/weeklyStats.mock";
+// Statistiche settimanali reali contro il backend Spring Boot
+// (/api/statistics/weekly). Passi e minuti attività restano fittizi: nessuna
+// fonte reale (pedometro) collegata, vedi mocks/weeklyStats.mock.ts.
+import { WeekId, WeekStats, fakeStepsAndActivity } from "../mocks/weeklyStats.mock";
+import {
+  formatDayMonth,
+  mondayOf,
+  parseIsoDate,
+  shortDayLabel,
+  toIsoDate,
+} from "../utils/date";
+import { apiFetch } from "./api.client";
 
-const DELAY = 600;
+type BeWeeklyStats = {
+  startDate: string;
+  endDate: string;
+  days: {
+    date: string;
+    activitiesCompleted: number;
+    appointmentsCount: number;
+    waterMl: number;
+  }[];
+};
 
-// Indice del giorno odierno in una settimana che parte da lunedì (Lun=0 … Dom=6).
-// getDay() usa domenica=0, quindi lo ruotiamo di +6.
-const todayIndex = (): number => (new Date().getDay() + 6) % 7;
+function weekStartFor(week: WeekId): Date {
+  const monday = mondayOf(new Date());
+  if (week === "previous") monday.setDate(monday.getDate() - 7);
+  return monday;
+}
 
-// Nella settimana corrente i giorni ancora da vivere non hanno dati reali:
-// li azzeriamo così il grafico mostra barre vuote invece di valori "dal futuro".
-// La settimana scorsa è tutta nel passato e resta invariata.
-function withFutureDaysEmptied(week: WeekStats): WeekStats {
-  if (week.id !== "current") return week;
+function toWeekStats(week: WeekId, be: BeWeeklyStats): WeekStats {
+  const fake = fakeStepsAndActivity[week];
 
-  const today = todayIndex();
   return {
-    ...week,
-    days: week.days.map((day, index) =>
-      index <= today
-        ? day
-        : {
-            ...day,
-            steps: 0,
-            activityMinutes: 0,
-            water: 0,
-            completedActivities: 0,
-          },
-    ),
+    id: week,
+    label: week === "current" ? "Questa settimana" : "Settimana scorsa",
+    range: `${formatDayMonth(parseIsoDate(be.startDate))} - ${formatDayMonth(parseIsoDate(be.endDate))}`,
+    days: be.days.map((day, index) => ({
+      day: shortDayLabel(parseIsoDate(day.date)),
+      steps: fake[index]?.steps ?? 0,
+      activityMinutes: fake[index]?.activityMinutes ?? 0,
+      water: day.waterMl,
+      completedActivities: day.activitiesCompleted,
+    })),
   };
 }
 
-export function getWeekStats(week: WeekId): Promise<WeekStats> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(withFutureDaysEmptied(weeklyStats[week])), DELAY);
-  });
+export async function getWeekStats(week: WeekId): Promise<WeekStats> {
+  const startDate = toIsoDate(weekStartFor(week));
+  const be = await apiFetch<BeWeeklyStats>(
+    `/api/statistics/weekly?startDate=${startDate}`,
+  );
+  return toWeekStats(week, be);
 }

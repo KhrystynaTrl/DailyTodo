@@ -39,6 +39,37 @@ export const formatTimeInput = (raw: string): string => {
   return [hours, minutes].filter(Boolean).join(":");
 };
 
+const DAY_LABELS = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
+
+export const shortDayLabel = (date: Date): string => DAY_LABELS[date.getDay()];
+
+// Lunedì della settimana (Lun-Dom) contenente `date`.
+export const mondayOf = (date: Date): Date => {
+  const result = new Date(date);
+  const day = (result.getDay() + 6) % 7;
+  result.setDate(result.getDate() - day);
+  result.setHours(0, 0, 0, 0);
+  return result;
+};
+
+export const toIsoDate = (date: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
+// Il backend tratta le date come LocalDate "muro": va parsata senza passare
+// da UTC (new Date("YYYY-MM-DD") sposterebbe il giorno vicino ai cambi fuso).
+export const parseIsoDate = (value: string): Date => {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export const formatDayMonth = (date: Date): string => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  return `${day}/${month}`;
+};
+
 export const isValidTime = (value: string): boolean => {
   const match = value.trim().match(/^(\d{2}):(\d{2})$/);
   if (!match) return false;

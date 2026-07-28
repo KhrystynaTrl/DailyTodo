@@ -21,33 +21,29 @@ export interface WeekStats {
   days: DayStat[];
 }
 
-export const weeklyStats: Record<WeekId, WeekStats> = {
-  current: {
-    id: "current",
-    label: "Questa settimana",
-    range: "20/07 - 26/07",
-    days: [
-      { day: "Lun", steps: 5200, activityMinutes: 40, water: 1800, completedActivities: 3 },
-      { day: "Mar", steps: 6100, activityMinutes: 25, water: 2000, completedActivities: 4 },
-      { day: "Mer", steps: 4800, activityMinutes: 50, water: 1500, completedActivities: 2 },
-      { day: "Gio", steps: 7300, activityMinutes: 35, water: 2200, completedActivities: 5 },
-      { day: "Ven", steps: 5600, activityMinutes: 45, water: 1900, completedActivities: 3 },
-      { day: "Sab", steps: 9100, activityMinutes: 60, water: 2500, completedActivities: 6 },
-      { day: "Dom", steps: 3200, activityMinutes: 20, water: 1200, completedActivities: 1 },
-    ],
-  },
-  previous: {
-    id: "previous",
-    label: "Settimana scorsa",
-    range: "13/07 - 19/07",
-    days: [
-      { day: "Lun", steps: 4800, activityMinutes: 30, water: 1600, completedActivities: 2 },
-      { day: "Mar", steps: 5200, activityMinutes: 35, water: 1700, completedActivities: 3 },
-      { day: "Mer", steps: 6000, activityMinutes: 20, water: 1400, completedActivities: 2 },
-      { day: "Gio", steps: 5100, activityMinutes: 40, water: 2000, completedActivities: 4 },
-      { day: "Ven", steps: 4300, activityMinutes: 25, water: 1500, completedActivities: 2 },
-      { day: "Sab", steps: 7800, activityMinutes: 55, water: 2300, completedActivities: 5 },
-      { day: "Dom", steps: 2600, activityMinutes: 15, water: 1000, completedActivities: 1 },
-    ],
-  },
+// Passi e minuti di attività non hanno ancora una fonte reale (nessun
+// pedometro collegato): restano valori fittizi, sovrapposti nel service ai
+// dati reali di acqua e attività completate che arrivano dal backend.
+export const fakeStepsAndActivity: Record<
+  WeekId,
+  { steps: number; activityMinutes: number }[]
+> = {
+  current: [
+    { steps: 5200, activityMinutes: 40 },
+    { steps: 6100, activityMinutes: 25 },
+    { steps: 4800, activityMinutes: 50 },
+    { steps: 7300, activityMinutes: 35 },
+    { steps: 5600, activityMinutes: 45 },
+    { steps: 9100, activityMinutes: 60 },
+    { steps: 3200, activityMinutes: 20 },
+  ],
+  previous: [
+    { steps: 4800, activityMinutes: 30 },
+    { steps: 5200, activityMinutes: 35 },
+    { steps: 6000, activityMinutes: 20 },
+    { steps: 5100, activityMinutes: 40 },
+    { steps: 4300, activityMinutes: 25 },
+    { steps: 7800, activityMinutes: 55 },
+    { steps: 2600, activityMinutes: 15 },
+  ],
 };

@@ -11,6 +11,7 @@ import {
   login as loginRequest,
   register as registerRequest,
 } from "../services/auth.service";
+import { getPreferences } from "../services/preferences.service";
 import {
   ProfileUpdate,
   updatePassword as updateUserPassword,
@@ -23,6 +24,7 @@ import {
   saveSession,
 } from "../storage/session.storage";
 import { clearTokens, saveTokens } from "../storage/token.storage";
+import { useTheme } from "./ThemeContext";
 
 type RegisterPayload = {
   name: string;
@@ -50,12 +52,24 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
+  const { hydrateFromServer } = useTheme();
+
+  // Se il tema non ha una preferenza salvata in locale su questo dispositivo,
+  // recupera quella salvata sul backend (es. impostata da un altro device).
+  const hydrateThemeFromServer = () => {
+    getPreferences()
+      .then((prefs) => hydrateFromServer(prefs.theme))
+      .catch(() => {});
+  };
 
   // Ripristina la sessione salvata al precedente avvio.
   useEffect(() => {
     loadSession()
       .then((saved) => {
-        if (saved) setUser(saved);
+        if (saved) {
+          setUser(saved);
+          hydrateThemeFromServer();
+        }
       })
       .finally(() => setIsHydrating(false));
   }, []);
@@ -75,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await saveTokens(tokens);
     setUser(loggedInUser);
     await saveSession(loggedInUser);
+    hydrateThemeFromServer();
   };
 
   const register = async ({ name, surname, email, password }: RegisterPayload) => {
@@ -87,6 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await saveTokens(tokens);
     setUser(newUser);
     await saveSession(newUser);
+    hydrateThemeFromServer();
   };
 
   const updateProfile = async (changes: ProfileUpdate) => {
