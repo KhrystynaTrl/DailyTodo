@@ -33,10 +33,14 @@ export default function NewAppointment() {
     today,
     serviceTypes,
     isLoadingServiceTypes,
+    serviceTypesError,
+    retryServiceTypes,
     selectedService,
     selectService,
     professionals,
     isLoadingProfessionals,
+    professionalsError,
+    retryProfessionals,
     selectedProfessional,
     selectProfessional,
     date,
@@ -45,6 +49,8 @@ export default function NewAppointment() {
     validateDate,
     slots,
     isLoadingSlots,
+    slotsError,
+    retrySlots,
     selectedTime,
     setSelectedTime,
     note,
@@ -111,6 +117,8 @@ export default function NewAppointment() {
             isLoading={isLoadingServiceTypes}
             loadingMessage="Caricamento servizi..."
             emptyMessage="Nessun servizio disponibile al momento"
+            error={serviceTypesError}
+            onRetry={retryServiceTypes}
             items={serviceTypes}
             keyExtractor={(service) => service.id}
             getTitle={(service) => service.nome}
@@ -125,6 +133,8 @@ export default function NewAppointment() {
             isLoading={isLoadingProfessionals}
             loadingMessage="Caricamento professionisti..."
             emptyMessage="Nessun professionista disponibile per questo servizio"
+            error={professionalsError}
+            onRetry={retryProfessionals}
             items={professionals}
             keyExtractor={(professional) => professional.id}
             getTitle={(professional) => professional.nome}
@@ -150,6 +160,13 @@ export default function NewAppointment() {
         {step === 4 ? (
           isLoadingSlots ? (
             <LoadingState message="Caricamento orari disponibili..." />
+          ) : slotsError ? (
+            <EmptyState
+              icon="cloud-offline-outline"
+              message={slotsError}
+              actionLabel="Riprova"
+              onAction={retrySlots}
+            />
           ) : (
             <TimeSlotPicker
               slots={slots}
@@ -271,6 +288,8 @@ function SelectionStep<T>({
   isLoading,
   loadingMessage,
   emptyMessage,
+  error,
+  onRetry,
   items,
   keyExtractor,
   getTitle,
@@ -281,6 +300,8 @@ function SelectionStep<T>({
   isLoading: boolean;
   loadingMessage: string;
   emptyMessage: string;
+  error?: string | null;
+  onRetry?: () => void;
   items: T[];
   keyExtractor: (item: T) => string | number;
   getTitle: (item: T) => string;
@@ -289,6 +310,16 @@ function SelectionStep<T>({
   onSelect: (item: T) => void;
 }) {
   if (isLoading) return <LoadingState message={loadingMessage} />;
+  if (error) {
+    return (
+      <EmptyState
+        icon="cloud-offline-outline"
+        message={error}
+        actionLabel="Riprova"
+        onAction={onRetry}
+      />
+    );
+  }
   if (items.length === 0) return <EmptyState message={emptyMessage} />;
 
   return (

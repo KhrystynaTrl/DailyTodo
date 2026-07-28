@@ -10,6 +10,7 @@ import LoadingState from "../../../components/ui/LoadingState";
 import WaterEntryRow from "../../../components/water/WaterEntryRow";
 import WaterProgressCircle from "../../../components/water/WaterProgressCircle";
 import { useTheme } from "../../../context/ThemeContext";
+import { useToast } from "../../../context/ToastContext";
 import {
   WaterEntry,
   addWaterEntry,
@@ -21,10 +22,12 @@ const PRESET_AMOUNTS = [150, 250, 500];
 
 export default function WaterConsumed() {
   const { theme } = useTheme();
+  const { showToast } = useToast();
 
   const [entries, setEntries] = useState<WaterEntry[]>([]);
   const [goalMl, setGoalMl] = useState(2000);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [customAmount, setCustomAmount] = useState("");
   const [customAmountError, setCustomAmountError] = useState("");
@@ -41,14 +44,30 @@ export default function WaterConsumed() {
     [entries],
   );
 
-  const loadWaterState = useCallback(() => {
-    return getWaterState().then((state) => {
-      setEntries(state.entries);
-      setGoalMl(state.goalMl);
-    });
-  }, []);
-
   const isFirstLoad = useRef(true);
+
+  // Al primo caricamento un errore blocca la schermata (nessun dato da
+  // mostrare, serve un vero stato di errore con retry). Ai ricaricamenti
+  // successivi (refocus) basta un toast: i dati già mostrati restano validi.
+  const loadWaterState = useCallback(() => {
+    return getWaterState()
+      .then((state) => {
+        setEntries(state.entries);
+        setGoalMl(state.goalMl);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento dei dati sull'acqua";
+        if (isFirstLoad.current) {
+          setLoadError(message);
+        } else {
+          showToast(message, "error");
+        }
+      });
+  }, [showToast]);
 
   // Ricarica ogni volta che la schermata torna in primo piano (es. dopo aver
   // aggiunto acqua da un altro dispositivo), non solo al primo avvio.
@@ -69,6 +88,11 @@ export default function WaterConsumed() {
       const state = await addWaterEntry(quantita);
       setEntries(state.entries);
       setGoalMl(state.goalMl);
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Errore durante l'aggiunta",
+        "error",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -93,9 +117,16 @@ export default function WaterConsumed() {
   };
 
   const handleRemove = async (id: number) => {
-    const state = await removeWaterEntry(id);
-    setEntries(state.entries);
-    setGoalMl(state.goalMl);
+    try {
+      const state = await removeWaterEntry(id);
+      setEntries(state.entries);
+      setGoalMl(state.goalMl);
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Errore durante la rimozione",
+        "error",
+      );
+    }
   };
 
   if (isLoading) {
@@ -203,7 +234,16 @@ export default function WaterConsumed() {
         </Text>
 
         {sortedEntries.length === 0 ? (
-          <EmptyState message="Nessuna quantità registrata oggi" />
+          loadError ? (
+            <EmptyState
+              icon="cloud-offline-outline"
+              message={loadError}
+              actionLabel="Riprova"
+              onAction={() => loadWaterState()}
+            />
+          ) : (
+            <EmptyState message="Nessuna quantità registrata oggi" />
+          )
         ) : (
           sortedEntries.map((entry) => (
             <WaterEntryRow key={entry.id} entry={entry} onRemove={handleRemove} />

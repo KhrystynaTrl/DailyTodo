@@ -29,6 +29,7 @@ export default function DailyActivity() {
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [status, setStatus] = useState<StatusFilter>("tutte");
   const [category, setCategory] = useState<CategoryFilter>("tutte");
@@ -38,11 +39,29 @@ export default function DailyActivity() {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Activity | null>(null);
 
-  const loadActivities = useCallback(() => {
-    return getActivities().then(setActivities);
-  }, []);
-
   const isFirstLoad = useRef(true);
+
+  // Al primo caricamento un errore blocca la schermata (nessun dato da
+  // mostrare, serve un vero stato di errore con retry). Ai ricaricamenti
+  // successivi (refocus) basta un toast: i dati già mostrati restano validi.
+  const loadActivities = useCallback(() => {
+    return getActivities()
+      .then((data) => {
+        setActivities(data);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento delle attività";
+        if (isFirstLoad.current) {
+          setLoadError(message);
+        } else {
+          showToast(message, "error");
+        }
+      });
+  }, [showToast]);
 
   // Ricarica ogni volta che la schermata torna in primo piano (es. dopo aver
   // modificato un'attività da un altro dispositivo), non solo al primo avvio.
@@ -187,7 +206,16 @@ export default function DailyActivity() {
         />
 
         {filteredActivities.length === 0 ? (
-          <EmptyState message="Nessuna attività trovata" />
+          loadError ? (
+            <EmptyState
+              icon="cloud-offline-outline"
+              message={loadError}
+              actionLabel="Riprova"
+              onAction={() => loadActivities()}
+            />
+          ) : (
+            <EmptyState message="Nessuna attività trovata" />
+          )
         ) : (
           filteredActivities.map((activity, index) => (
             <FadeInView key={activity.id} index={index}>

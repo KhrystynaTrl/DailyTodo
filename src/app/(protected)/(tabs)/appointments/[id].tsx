@@ -38,13 +38,29 @@ export default function AppointmentDetail() {
 
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-  useEffect(() => {
+  const loadAppointment = () => {
     setIsLoading(true);
-    getAppointmentById(Number(id))
-      .then((found) => setAppointment(found ?? null))
+    return getAppointmentById(Number(id))
+      .then((found) => {
+        setAppointment(found ?? null);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento dell'appuntamento",
+        );
+      })
       .finally(() => setIsLoading(false));
+  };
+
+  useEffect(() => {
+    loadAppointment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleCancelConfirm = async () => {
@@ -53,8 +69,11 @@ export default function AppointmentDetail() {
       const updated = await cancelAppointment(appointment.id);
       setAppointment(updated);
       showToast("Appuntamento annullato");
-    } catch {
-      showToast("Errore durante l'annullamento", "error");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Errore durante l'annullamento",
+        "error",
+      );
     } finally {
       setShowCancelConfirm(false);
     }
@@ -86,6 +105,13 @@ export default function AppointmentDetail() {
 
       {isLoading ? (
         <LoadingState message="Caricamento appuntamento..." />
+      ) : loadError ? (
+        <EmptyState
+          icon="cloud-offline-outline"
+          message={loadError}
+          actionLabel="Riprova"
+          onAction={loadAppointment}
+        />
       ) : !appointment ? (
         <EmptyState
           message="Appuntamento non trovato"

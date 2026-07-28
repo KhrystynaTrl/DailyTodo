@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NotificationDetailModal from "../../components/notifications/NotificationDetailModal";
@@ -9,8 +9,10 @@ import NotificationFilterBar, {
 } from "../../components/notifications/NotificationFilterBar";
 import NotificationList from "../../components/notifications/NotificationList";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
+import EmptyState from "../../components/ui/EmptyState";
 import LoadingState from "../../components/ui/LoadingState";
 import { useTheme } from "../../context/ThemeContext";
+import { useToast } from "../../context/ToastContext";
 import { Notification } from "../../mocks/notifications.mock";
 import {
   deleteNotification,
@@ -21,19 +23,45 @@ import {
 
 export default function Notifications() {
   const { theme } = useTheme();
+  const { showToast } = useToast();
 
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [filter, setFilter] = useState<NotificationFilter>("tutte");
   const [selected, setSelected] = useState<Notification | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    getNotifications()
-      .then(setNotifications)
-      .finally(() => setIsLoading(false));
+  const loadNotifications = useCallback(() => {
+    return getNotifications()
+      .then((data) => {
+        setNotifications(data);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento delle notifiche",
+        );
+      });
   }, []);
+
+  useEffect(() => {
+    loadNotifications().finally(() => setIsLoading(false));
+  }, [loadNotifications]);
+
+  // Le mutazioni aggiornano lo stato locale in modo ottimistico; se la
+  // chiamata al backend fallisce, avvisiamo l'utente e ricarichiamo i dati
+  // reali per non lasciare stato locale e server disallineati in silenzio.
+  const handleMutationError = (error: unknown) => {
+    showToast(
+      error instanceof Error ? error.message : "Errore durante l'operazione",
+      "error",
+    );
+    loadNotifications();
+  };
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.letta).length,
@@ -56,18 +84,18 @@ export default function Notifications() {
     setSelected(notification);
     if (!notification.letta) {
       setRead(notification.id);
-      markAsRead(notification.id).catch(() => {});
+      markAsRead(notification.id).catch(handleMutationError);
     }
   };
 
   const handleMarkRead = (id: number) => {
     setRead(id);
-    markAsRead(id).catch(() => {});
+    markAsRead(id).catch(handleMutationError);
   };
 
   const handleMarkAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, letta: true })));
-    markAllAsRead().catch(() => {});
+    markAllAsRead().catch(handleMutationError);
   };
 
   // La rimozione avviene in due tempi: prima l'animazione di uscita
@@ -80,7 +108,7 @@ export default function Notifications() {
   const handleDeleteComplete = (id: number) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
     setDeletingId(null);
-    deleteNotification(id).catch(() => {});
+    deleteNotification(id).catch(handleMutationError);
   };
 
   return (
@@ -128,6 +156,13 @@ export default function Notifications() {
 
       {isLoading ? (
         <LoadingState message="Caricamento notifiche..." />
+      ) : loadError && notifications.length === 0 ? (
+        <EmptyState
+          icon="cloud-offline-outline"
+          message={loadError}
+          actionLabel="Riprova"
+          onAction={() => loadNotifications()}
+        />
       ) : (
         <ScrollView contentContainerStyle={{ padding: theme.spacing.lg }}>
           <NotificationList

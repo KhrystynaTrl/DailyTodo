@@ -18,12 +18,28 @@ export default function EditAppointment() {
 
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const loadAppointment = () => {
+    setIsLoading(true);
+    return getAppointmentById(Number(id))
+      .then((found) => {
+        setAppointment(found ?? null);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento dell'appuntamento",
+        );
+      })
+      .finally(() => setIsLoading(false));
+  };
 
   useEffect(() => {
-    setIsLoading(true);
-    getAppointmentById(Number(id))
-      .then((found) => setAppointment(found ?? null))
-      .finally(() => setIsLoading(false));
+    loadAppointment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleSaved = () => {
@@ -57,6 +73,13 @@ export default function EditAppointment() {
 
       {isLoading ? (
         <LoadingState message="Caricamento appuntamento..." />
+      ) : loadError ? (
+        <EmptyState
+          icon="cloud-offline-outline"
+          message={loadError}
+          actionLabel="Riprova"
+          onAction={loadAppointment}
+        />
       ) : !appointment ? (
         <EmptyState
           message="Appuntamento non trovato"

@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Appointment } from "../../mocks/appointments.mock";
 import { Professional } from "../../mocks/professionals.mock";
 import { ServiceType } from "../../mocks/services.mock";
@@ -24,12 +24,18 @@ export function useNewAppointmentWizard() {
 
   const [serviceTypes, setServiceTypes] = useState<ServiceType[]>([]);
   const [isLoadingServiceTypes, setIsLoadingServiceTypes] = useState(true);
+  const [serviceTypesError, setServiceTypesError] = useState<string | null>(
+    null,
+  );
   const [selectedService, setSelectedService] = useState<ServiceType | null>(
     null,
   );
 
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [isLoadingProfessionals, setIsLoadingProfessionals] = useState(false);
+  const [professionalsError, setProfessionalsError] = useState<string | null>(
+    null,
+  );
   const [selectedProfessional, setSelectedProfessional] =
     useState<Professional | null>(null);
 
@@ -38,6 +44,7 @@ export function useNewAppointmentWizard() {
 
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState("");
 
   const [note, setNote] = useState("");
@@ -47,27 +54,70 @@ export function useNewAppointmentWizard() {
   const [createdAppointment, setCreatedAppointment] =
     useState<Appointment | null>(null);
 
-  useEffect(() => {
-    getServiceTypes()
-      .then(setServiceTypes)
+  const loadServiceTypes = useCallback(() => {
+    setIsLoadingServiceTypes(true);
+    return getServiceTypes()
+      .then((data) => {
+        setServiceTypes(data);
+        setServiceTypesError(null);
+      })
+      .catch((error) => {
+        setServiceTypesError(
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento dei servizi",
+        );
+      })
       .finally(() => setIsLoadingServiceTypes(false));
   }, []);
 
   useEffect(() => {
+    loadServiceTypes();
+  }, [loadServiceTypes]);
+
+  const loadProfessionals = useCallback(() => {
     if (!selectedService) return;
     setIsLoadingProfessionals(true);
-    getProfessionals(selectedService.id)
-      .then(setProfessionals)
+    return getProfessionals(selectedService.id)
+      .then((data) => {
+        setProfessionals(data);
+        setProfessionalsError(null);
+      })
+      .catch((error) => {
+        setProfessionalsError(
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento dei professionisti",
+        );
+      })
       .finally(() => setIsLoadingProfessionals(false));
   }, [selectedService]);
 
   useEffect(() => {
+    loadProfessionals();
+  }, [loadProfessionals]);
+
+  const loadSlots = useCallback(() => {
     if (!selectedProfessional || !isValidDate(date)) return;
     setIsLoadingSlots(true);
-    getAvailableSlots(selectedProfessional.id, date)
-      .then(setSlots)
+    return getAvailableSlots(selectedProfessional.id, date)
+      .then((data) => {
+        setSlots(data);
+        setSlotsError(null);
+      })
+      .catch((error) => {
+        setSlotsError(
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento degli orari disponibili",
+        );
+      })
       .finally(() => setIsLoadingSlots(false));
   }, [selectedProfessional, date]);
+
+  useEffect(() => {
+    loadSlots();
+  }, [loadSlots]);
 
   const selectService = (service: ServiceType) => {
     if (selectedService?.id !== service.id) {
@@ -164,10 +214,14 @@ export function useNewAppointmentWizard() {
     today,
     serviceTypes,
     isLoadingServiceTypes,
+    serviceTypesError,
+    retryServiceTypes: loadServiceTypes,
     selectedService,
     selectService,
     professionals,
     isLoadingProfessionals,
+    professionalsError,
+    retryProfessionals: loadProfessionals,
     selectedProfessional,
     selectProfessional,
     date,
@@ -176,6 +230,8 @@ export function useNewAppointmentWizard() {
     validateDate,
     slots,
     isLoadingSlots,
+    slotsError,
+    retrySlots: loadSlots,
     selectedTime,
     setSelectedTime,
     note,

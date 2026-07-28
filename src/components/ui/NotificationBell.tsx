@@ -11,9 +11,13 @@ export default function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Riallinea il conteggio non lette ogni volta che si cambia route (es. al
-  // ritorno dalla schermata Notifiche), oltre che al primo montaggio.
+  // ritorno dalla schermata Notifiche), oltre che al primo montaggio. Un
+  // fallimento qui è a basso impatto (badge non aggiornato, si riallinea al
+  // prossimo cambio route): niente toast, solo evitiamo la promise rejection.
   useEffect(() => {
-    getUnreadCount().then(setUnreadCount);
+    getUnreadCount()
+      .then(setUnreadCount)
+      .catch(() => {});
   }, [pathname]);
 
   return (

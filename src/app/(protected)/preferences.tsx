@@ -40,7 +40,20 @@ export default function PreferencesScreen() {
         setPrefs(loaded);
         setOverride(loaded.theme);
       })
+      .catch((error) => {
+        // Restano i default già in stato: la schermata resta comunque
+        // utilizzabile, ma avvisiamo che potrebbero non riflettere quanto
+        // salvato realmente sul backend.
+        showToast(
+          error instanceof Error
+            ? error.message
+            : "Impossibile caricare le preferenze salvate",
+          "error",
+        );
+      })
       .finally(() => setIsLoading(false));
+    // Solo al mount: non vogliamo ricaricare le preferenze ad ogni render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Aggiorna lo stato, persiste sul backend e conferma con un toast.
@@ -51,7 +64,12 @@ export default function PreferencesScreen() {
     if (patch.theme) setOverride(patch.theme);
     updatePreferences(next)
       .then(() => showToast("Preferenze salvate"))
-      .catch(() => showToast("Errore nel salvataggio", "error"));
+      .catch((error) => {
+        showToast(
+          error instanceof Error ? error.message : "Errore nel salvataggio",
+          "error",
+        );
+      });
   };
 
   if (isLoading) {

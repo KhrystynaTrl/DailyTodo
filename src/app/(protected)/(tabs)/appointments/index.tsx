@@ -46,6 +46,7 @@ export default function AppointmentsList() {
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [status, setStatus] = useState<StatusFilter>("tutti");
   const [search, setSearch] = useState("");
   const [cancelTarget, setCancelTarget] = useState<Appointment | null>(null);
@@ -54,11 +55,29 @@ export default function AppointmentsList() {
     formatDate(new Date()),
   );
 
-  const loadAppointments = useCallback(() => {
-    return getAppointments().then(setAppointments);
-  }, []);
-
   const isFirstLoad = useRef(true);
+
+  // Al primo caricamento un errore blocca la schermata (nessun dato da
+  // mostrare, serve un vero stato di errore con retry). Ai ricaricamenti
+  // successivi (refocus) basta un toast: i dati già mostrati restano validi.
+  const loadAppointments = useCallback(() => {
+    return getAppointments()
+      .then((data) => {
+        setAppointments(data);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento degli appuntamenti";
+        if (isFirstLoad.current) {
+          setLoadError(message);
+        } else {
+          showToast(message, "error");
+        }
+      });
+  }, [showToast]);
 
   // Ricarica ogni volta che la schermata torna in primo piano (es. dopo aver
   // prenotato/annullato da un altro dispositivo), non solo al primo avvio.
@@ -110,8 +129,11 @@ export default function AppointmentsList() {
         prev.map((a) => (a.id === updated.id ? updated : a)),
       );
       showToast("Appuntamento annullato");
-    } catch {
-      showToast("Errore durante l'annullamento", "error");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Errore durante l'annullamento",
+        "error",
+      );
     } finally {
       setCancelTarget(null);
     }
@@ -240,13 +262,22 @@ export default function AppointmentsList() {
         ) : null}
 
         {visibleAppointments.length === 0 ? (
-          <EmptyState
-            message={
-              viewMode === "calendario"
-                ? `Nessun appuntamento per il ${selectedDay}`
-                : "Nessun appuntamento trovato"
-            }
-          />
+          loadError ? (
+            <EmptyState
+              icon="cloud-offline-outline"
+              message={loadError}
+              actionLabel="Riprova"
+              onAction={() => loadAppointments()}
+            />
+          ) : (
+            <EmptyState
+              message={
+                viewMode === "calendario"
+                  ? `Nessun appuntamento per il ${selectedDay}`
+                  : "Nessun appuntamento trovato"
+              }
+            />
+          )
         ) : (
           visibleAppointments.map((appointment) => (
             <AppointmentCard

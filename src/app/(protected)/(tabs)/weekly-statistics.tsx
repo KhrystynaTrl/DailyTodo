@@ -11,6 +11,7 @@ import Card from "../../../components/ui/Card";
 import EmptyState from "../../../components/ui/EmptyState";
 import LoadingState from "../../../components/ui/LoadingState";
 import { useTheme } from "../../../context/ThemeContext";
+import { useToast } from "../../../context/ToastContext";
 import {
   MetricKey,
   WeekId,
@@ -44,24 +45,41 @@ const avgMetric = (week: WeekStats, key: MetricKey): number => {
 
 export default function WeeklyStatistics() {
   const { theme } = useTheme();
+  const { showToast } = useToast();
 
   const [current, setCurrent] = useState<WeekStats | null>(null);
   const [previous, setPrevious] = useState<WeekStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [week, setWeek] = useState<WeekId>("current");
   const [metric, setMetric] = useState<MetricKey>("steps");
 
+  const isFirstLoad = useRef(true);
+
+  // Al primo caricamento un errore blocca la schermata (nessun dato da
+  // mostrare, serve un vero stato di errore con retry, invece dello spinner
+  // che altrimenti resterebbe visibile per sempre). Ai ricaricamenti
+  // successivi (refocus) basta un toast: i dati già mostrati restano validi.
   const loadStats = useCallback(() => {
-    return Promise.all([getWeekStats("current"), getWeekStats("previous")]).then(
-      ([cur, prev]) => {
+    return Promise.all([getWeekStats("current"), getWeekStats("previous")])
+      .then(([cur, prev]) => {
         setCurrent(cur);
         setPrevious(prev);
-      },
-    );
-  }, []);
-
-  const isFirstLoad = useRef(true);
+        setLoadError(null);
+      })
+      .catch((error) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento delle statistiche";
+        if (isFirstLoad.current) {
+          setLoadError(message);
+        } else {
+          showToast(message, "error");
+        }
+      });
+  }, [showToast]);
 
   // Ricarica ogni volta che la schermata torna in primo piano, non solo al
   // primo avvio, così i dati (acqua, attività completate) restano aggiornati.
@@ -91,10 +109,23 @@ export default function WeeklyStatistics() {
     [activeWeek],
   );
 
-  if (isLoading || !activeWeek) {
+  if (isLoading) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
         <LoadingState message="Caricamento statistiche..." />
+      </SafeAreaView>
+    );
+  }
+
+  if (!activeWeek) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <EmptyState
+          icon="cloud-offline-outline"
+          message={loadError ?? "Errore nel caricamento delle statistiche"}
+          actionLabel="Riprova"
+          onAction={() => loadStats()}
+        />
       </SafeAreaView>
     );
   }

@@ -11,7 +11,7 @@ import {
   toIsoDate,
   toLocalDateTimeString,
 } from "../utils/date";
-import { apiFetch } from "./api.client";
+import { ApiError, apiFetch } from "./api.client";
 
 type BeAppointmentStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
 
@@ -87,14 +87,18 @@ export async function getAppointments(): Promise<Appointment[]> {
   return page.content.map(toAppointment);
 }
 
+// Restituisce undefined solo se l'appuntamento non esiste davvero (404): gli
+// altri errori (rete, backend) vengono rilanciati, così il chiamante può
+// distinguere "non trovato" da "impossibile caricare" e offrire un retry.
 export async function getAppointmentById(
   id: number,
 ): Promise<Appointment | undefined> {
   try {
     const be = await apiFetch<BeAppointment>(`/api/appointments/${id}`);
     return toAppointment(be);
-  } catch {
-    return undefined;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return undefined;
+    throw error;
   }
 }
 

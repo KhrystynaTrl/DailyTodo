@@ -77,6 +77,10 @@ export default function ForgotPasswordForm() {
       }
 
       setStep("reset");
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Errore durante la verifica",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -113,8 +117,8 @@ export default function ForgotPasswordForm() {
               styles.infoText,
             ]}
           >
-            Inserisci l'email del tuo account: ti faremo impostare una nuova
-            password.
+            Inserisci l&apos;email del tuo account: ti faremo impostare una
+            nuova password.
           </Text>
 
           <AppTextField

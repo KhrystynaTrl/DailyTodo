@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 import { Appointment } from "../../mocks/appointments.mock";
@@ -11,6 +11,7 @@ import { isRequired, isValidDate } from "../../utils/validators";
 import AppTextField from "../ui/AppTextField";
 import Card from "../ui/Card";
 import DateField from "../ui/DateField";
+import EmptyState from "../ui/EmptyState";
 import LoadingState from "../ui/LoadingState";
 import TimeSlotPicker, { TimeSlot } from "./TimeSlotPicker";
 
@@ -36,6 +37,7 @@ export default function AppointmentForm({
 
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
+  const [slotsError, setSlotsError] = useState<string | null>(null);
 
   const [note, setNote] = useState(appointment.note ?? "");
 
@@ -48,16 +50,30 @@ export default function AppointmentForm({
     return t;
   }, []);
 
-  useEffect(() => {
+  const loadSlots = useCallback(() => {
     if (!isValidDate(date)) return;
     setIsLoadingSlots(true);
-    getAvailableSlots(appointment.professionalId, date, {
+    return getAvailableSlots(appointment.professionalId, date, {
       data: appointment.data,
       ora: appointment.ora,
     })
-      .then(setSlots)
+      .then((data) => {
+        setSlots(data);
+        setSlotsError(null);
+      })
+      .catch((error) => {
+        setSlotsError(
+          error instanceof Error
+            ? error.message
+            : "Errore nel caricamento degli orari disponibili",
+        );
+      })
       .finally(() => setIsLoadingSlots(false));
   }, [appointment.professionalId, appointment.data, appointment.ora, date]);
+
+  useEffect(() => {
+    loadSlots();
+  }, [loadSlots]);
 
   const handleDateChange = (value: string) => {
     setDate(value);
@@ -164,6 +180,13 @@ export default function AppointmentForm({
       </Text>
       {isLoadingSlots ? (
         <LoadingState message="Caricamento orari disponibili..." />
+      ) : slotsError ? (
+        <EmptyState
+          icon="cloud-offline-outline"
+          message={slotsError}
+          actionLabel="Riprova"
+          onAction={loadSlots}
+        />
       ) : (
         <TimeSlotPicker slots={slots} value={time} onChange={setTime} />
       )}

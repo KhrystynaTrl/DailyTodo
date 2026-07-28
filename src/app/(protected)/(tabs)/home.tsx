@@ -17,6 +17,7 @@ import ProgressBar from "../../../components/ui/ProgressBar";
 import StatCard from "../../../components/ui/StatCard";
 import { useAuth } from "../../../context/AuthContext";
 import { useTheme } from "../../../context/ThemeContext";
+import { useToast } from "../../../context/ToastContext";
 import { Activity } from "../../../mocks/activities.mock";
 import { Appointment } from "../../../mocks/appointments.mock";
 import { DailyStats } from "../../../mocks/dailyStats.mock";
@@ -29,6 +30,7 @@ import { isToday, parseDate } from "../../../utils/date";
 export default function Home() {
   const { theme } = useTheme();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [stats, setStats] = useState<DailyStats | null>(null);
   const [waterMl, setWaterMl] = useState(0);
@@ -50,9 +52,15 @@ export default function Home() {
         getAppointments(),
         getWaterState(),
       ]);
-    } catch {
+    } catch (error) {
       // Sessione scaduta o token mancante: onSessionExpired (AuthContext) ha
       // già forzato il logout, il redirect a login lo gestisce _layout.tsx.
+      // Per altri errori (rete, backend) avvisiamo l'utente invece di
+      // lasciare la Home vuota senza spiegazioni.
+      showToast(
+        error instanceof Error ? error.message : "Errore nel caricamento dei dati",
+        "error",
+      );
       return;
     }
 
@@ -85,7 +93,7 @@ export default function Home() {
       );
 
     setNextAppointment(upcoming[0] ?? null);
-  }, []);
+  }, [showToast]);
 
   const isFirstLoad = useRef(true);
 
