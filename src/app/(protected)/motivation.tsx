@@ -1,13 +1,22 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import {
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Card from "../../components/ui/Card";
 import EmptyState from "../../components/ui/EmptyState";
 import LoadingState from "../../components/ui/LoadingState";
 import { useTheme } from "../../context/ThemeContext";
-import { Quote, getMotivationalQuotes } from "../../services/motivation.service";
+import {
+  Quote,
+  getMotivationalQuotes,
+} from "../../services/motivation.service";
 
 type Status = "loading" | "error" | "success";
 
@@ -77,6 +86,10 @@ export default function Motivation() {
           contentContainerStyle={{
             padding: theme.spacing.lg,
             flexGrow: 1,
+            justifyContent: "center",
+            width: "100%",
+            maxWidth: 640,
+            alignSelf: "center",
           }}
           refreshControl={
             <RefreshControl
@@ -91,40 +104,34 @@ export default function Motivation() {
               <EmptyState message="Nessuna frase disponibile al momento. Trascina verso il basso per aggiornare." />
             </View>
           ) : (
-            quotes.map((quote) => (
-              <Card
-                key={quote.id}
-                variant="base"
-                style={{ marginBottom: theme.spacing.md }}
+            <Card variant="base" style={{ marginBottom: theme.spacing.md }}>
+              <Ionicons
+                name="sparkles-outline"
+                size={20}
+                color={theme.colors.primary}
+                style={{ marginBottom: theme.spacing.sm }}
+              />
+              <Text
+                style={{
+                  color: theme.colors.text,
+                  ...theme.text.body,
+                  fontStyle: "italic",
+                }}
               >
-                <Ionicons
-                  name="sparkles-outline"
-                  size={20}
-                  color={theme.colors.primary}
-                  style={{ marginBottom: theme.spacing.sm }}
-                />
-                <Text
-                  style={{
-                    color: theme.colors.text,
-                    ...theme.text.body,
-                    fontStyle: "italic",
-                  }}
-                >
-                  “{quote.text}”
-                </Text>
-                <Text
-                  style={{
-                    color: theme.colors.textMuted,
-                    marginTop: theme.spacing.sm,
-                    textAlign: "right",
-                    ...theme.text.caption,
-                    fontWeight: "700",
-                  }}
-                >
-                  — {quote.author}
-                </Text>
-              </Card>
-            ))
+                “{quotes[0].text}”
+              </Text>
+              <Text
+                style={{
+                  color: theme.colors.textMuted,
+                  marginTop: theme.spacing.sm,
+                  textAlign: "right",
+                  ...theme.text.caption,
+                  fontWeight: "700",
+                }}
+              >
+                — {quotes[0].author}
+              </Text>
+            </Card>
           )}
         </ScrollView>
       )}

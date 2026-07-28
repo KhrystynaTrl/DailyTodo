@@ -52,13 +52,13 @@ export default function TopBar() {
 
         {/* Data centrata nella riga, dietro logo e icone (non intercetta i tocchi) */}
         <Text
-          pointerEvents="none"
           style={{
             position: "absolute",
             left: 0,
             right: 0,
             textAlign: "center",
             color: theme.colors.textMuted,
+            pointerEvents: "none",
             ...theme.text.caption,
           }}
         >

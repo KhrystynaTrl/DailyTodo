@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppointmentCard from "../../../../components/appointments/AppointmentCard";
@@ -54,13 +54,24 @@ export default function AppointmentsList() {
     formatDate(new Date()),
   );
 
-  const loadAppointments = () => {
+  const loadAppointments = useCallback(() => {
     return getAppointments().then(setAppointments);
-  };
-
-  useEffect(() => {
-    loadAppointments().finally(() => setIsLoading(false));
   }, []);
+
+  const isFirstLoad = useRef(true);
+
+  // Ricarica ogni volta che la schermata torna in primo piano (es. dopo aver
+  // prenotato/annullato da un altro dispositivo), non solo al primo avvio.
+  useFocusEffect(
+    useCallback(() => {
+      loadAppointments().finally(() => {
+        if (isFirstLoad.current) {
+          setIsLoading(false);
+          isFirstLoad.current = false;
+        }
+      });
+    }, [loadAppointments]),
+  );
 
   const filteredAppointments = useMemo(() => {
     return appointments.filter((appointment) => {

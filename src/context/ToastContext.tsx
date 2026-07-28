@@ -75,13 +75,13 @@ function Toast({ data, onHide }: { data: ToastData; onHide: () => void }) {
 
   return (
     <Animated.View
-      pointerEvents="none"
       style={{
         position: "absolute",
         left: theme.spacing.lg,
         right: theme.spacing.lg,
         bottom: insets.bottom + 74,
         opacity: anim,
+        pointerEvents: "none",
         transform: [
           {
             translateY: anim.interpolate({

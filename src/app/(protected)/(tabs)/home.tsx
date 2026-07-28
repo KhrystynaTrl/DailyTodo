@@ -148,6 +148,7 @@ export default function Home() {
             color: theme.colors.text,
             ...theme.text.h1,
             marginBottom: theme.spacing.lg,
+            textAlign: "center",
           }}
         >
           {greeting}
@@ -179,9 +180,7 @@ export default function Home() {
           onPress={() => router.push("/motivation")}
           style={({ pressed }) => [
             {
-              flexDirection: "row",
               alignItems: "center",
-              gap: theme.spacing.md,
               backgroundColor: theme.colors.surface,
               borderRadius: theme.radii.lg,
               padding: theme.spacing.lg,
@@ -191,20 +190,31 @@ export default function Home() {
             pressed && { opacity: 0.7 },
           ]}
         >
-          <Ionicons name="sparkles" size={22} color={theme.colors.primary} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: theme.colors.text, ...theme.text.body, fontWeight: "700" }}>
-              Frase del giorno
-            </Text>
-            <Text style={{ color: theme.colors.textMuted, ...theme.text.caption }}>
-              Lasciati ispirare con una frase motivazionale
-            </Text>
-          </View>
           <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={theme.colors.textMuted}
+            name="sparkles"
+            size={22}
+            color={theme.colors.primary}
+            style={{ marginBottom: theme.spacing.xs }}
           />
+          <Text
+            style={{
+              color: theme.colors.text,
+              ...theme.text.body,
+              fontWeight: "700",
+              textAlign: "center",
+            }}
+          >
+            Frase del giorno
+          </Text>
+          <Text
+            style={{
+              color: theme.colors.textMuted,
+              ...theme.text.caption,
+              textAlign: "center",
+            }}
+          >
+            Lasciati ispirare con una frase motivazionale
+          </Text>
         </Pressable>
 
         <TodoTodayCard activities={todayActivities} />

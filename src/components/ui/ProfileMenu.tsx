@@ -2,7 +2,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import { Modal, Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import OrientamentoMedicoIcon from "../../../assets/images/icon-ex/orientamento-medico.svg";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import Avatar from "./Avatar";
@@ -49,8 +48,7 @@ export default function ProfileMenu() {
             }}
           >
             <TopBarMenuItem
-              svgIcon={OrientamentoMedicoIcon}
-              iconSize={32}
+              icon="person-outline"
               label="Profilo"
               onPress={() => {
                 setVisible(false);

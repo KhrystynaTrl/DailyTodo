@@ -20,13 +20,20 @@ export default function StatCard({
 
   return (
     <Card variant="flat" style={style}>
-      <Text style={{ color: theme.colors.textMuted, ...theme.text.caption }}>
+      <Text
+        style={{
+          color: theme.colors.textMuted,
+          textAlign: "center",
+          ...theme.text.caption,
+        }}
+      >
         {label}
       </Text>
       <Text
         style={{
           color: theme.colors.text,
           marginTop: theme.spacing.xs,
+          textAlign: "center",
           ...theme.text.h2,
         }}
       >

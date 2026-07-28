@@ -1,4 +1,19 @@
 {
+  "permissions": {
+    "allow": [
+      "PowerShell(setx ANDROID_HOME \"C:\\\\Users\\\\khrys\\\\AppData\\\\Local\\\\Android\\\\Sdk\")",
+      "PowerShell(setx ANDROID_SDK_ROOT \"C:\\\\Users\\\\khrys\\\\AppData\\\\Local\\\\Android\\\\Sdk\")",
+      "Bash(adb version *)",
+      "Bash(adb devices *)",
+      "Bash(adb pair *)",
+      "Bash(adb connect *)",
+      "Bash(timeout 90 npm run android)",
+      "Bash(npm run *)",
+      "Bash(echo \"PID:$!\")",
+      "Bash(cat /tmp/android_run.log 2>&1 | tail -150)",
+      "Read(//tmp/**)"
+    ]
+  },
   "enabledPlugins": {
     "expo@claude-plugins-official": true
   }

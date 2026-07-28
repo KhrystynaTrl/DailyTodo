@@ -12,6 +12,7 @@ import {
 import AppTextField from "../../../../components/ui/AppTextField";
 import Card from "../../../../components/ui/Card";
 import DateField from "../../../../components/ui/DateField";
+import EmptyState from "../../../../components/ui/EmptyState";
 import LoadingState from "../../../../components/ui/LoadingState";
 import ProgressBar from "../../../../components/ui/ProgressBar";
 import { useTheme } from "../../../../context/ThemeContext";
@@ -109,6 +110,7 @@ export default function NewAppointment() {
           <SelectionStep
             isLoading={isLoadingServiceTypes}
             loadingMessage="Caricamento servizi..."
+            emptyMessage="Nessun servizio disponibile al momento"
             items={serviceTypes}
             keyExtractor={(service) => service.id}
             getTitle={(service) => service.nome}
@@ -122,6 +124,7 @@ export default function NewAppointment() {
           <SelectionStep
             isLoading={isLoadingProfessionals}
             loadingMessage="Caricamento professionisti..."
+            emptyMessage="Nessun professionista disponibile per questo servizio"
             items={professionals}
             keyExtractor={(professional) => professional.id}
             getTitle={(professional) => professional.nome}
@@ -267,6 +270,7 @@ export default function NewAppointment() {
 function SelectionStep<T>({
   isLoading,
   loadingMessage,
+  emptyMessage,
   items,
   keyExtractor,
   getTitle,
@@ -276,6 +280,7 @@ function SelectionStep<T>({
 }: {
   isLoading: boolean;
   loadingMessage: string;
+  emptyMessage: string;
   items: T[];
   keyExtractor: (item: T) => string | number;
   getTitle: (item: T) => string;
@@ -284,6 +289,7 @@ function SelectionStep<T>({
   onSelect: (item: T) => void;
 }) {
   if (isLoading) return <LoadingState message={loadingMessage} />;
+  if (items.length === 0) return <EmptyState message={emptyMessage} />;
 
   return (
     <>

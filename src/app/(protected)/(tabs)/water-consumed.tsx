@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AppButton from "../../../components/ui/AppButton";
@@ -40,14 +41,27 @@ export default function WaterConsumed() {
     [entries],
   );
 
-  useEffect(() => {
-    getWaterState()
-      .then((state) => {
-        setEntries(state.entries);
-        setGoalMl(state.goalMl);
-      })
-      .finally(() => setIsLoading(false));
+  const loadWaterState = useCallback(() => {
+    return getWaterState().then((state) => {
+      setEntries(state.entries);
+      setGoalMl(state.goalMl);
+    });
   }, []);
+
+  const isFirstLoad = useRef(true);
+
+  // Ricarica ogni volta che la schermata torna in primo piano (es. dopo aver
+  // aggiunto acqua da un altro dispositivo), non solo al primo avvio.
+  useFocusEffect(
+    useCallback(() => {
+      loadWaterState().finally(() => {
+        if (isFirstLoad.current) {
+          setIsLoading(false);
+          isFirstLoad.current = false;
+        }
+      });
+    }, [loadWaterState]),
+  );
 
   const handleAdd = async (quantita: number) => {
     setIsSaving(true);

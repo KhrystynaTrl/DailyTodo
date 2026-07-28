@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MetricSummaryCard, {
@@ -51,14 +52,29 @@ export default function WeeklyStatistics() {
   const [week, setWeek] = useState<WeekId>("current");
   const [metric, setMetric] = useState<MetricKey>("steps");
 
-  useEffect(() => {
-    Promise.all([getWeekStats("current"), getWeekStats("previous")])
-      .then(([cur, prev]) => {
+  const loadStats = useCallback(() => {
+    return Promise.all([getWeekStats("current"), getWeekStats("previous")]).then(
+      ([cur, prev]) => {
         setCurrent(cur);
         setPrevious(prev);
-      })
-      .finally(() => setIsLoading(false));
+      },
+    );
   }, []);
+
+  const isFirstLoad = useRef(true);
+
+  // Ricarica ogni volta che la schermata torna in primo piano, non solo al
+  // primo avvio, così i dati (acqua, attività completate) restano aggiornati.
+  useFocusEffect(
+    useCallback(() => {
+      loadStats().finally(() => {
+        if (isFirstLoad.current) {
+          setIsLoading(false);
+          isFirstLoad.current = false;
+        }
+      });
+    }, [loadStats]),
+  );
 
   const activeWeek = week === "current" ? current : previous;
   // Il confronto ha senso solo per la settimana corrente (rispetto alla scorsa).

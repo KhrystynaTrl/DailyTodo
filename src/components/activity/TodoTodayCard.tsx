@@ -27,16 +27,23 @@ export default function TodoTodayCard({ activities }: TodoTodayCardProps) {
     <Card style={{ marginBottom: theme.spacing.lg }}>
       <View
         style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
+          position: "relative",
           marginBottom: theme.spacing.md,
         }}
       >
-        <Text style={{ color: theme.colors.text, ...theme.text.h2 }}>
+        <Text
+          style={{
+            color: theme.colors.text,
+            ...theme.text.h2,
+            textAlign: "center",
+          }}
+        >
           Todo di oggi
         </Text>
-        <Pressable onPress={() => router.push("/daily-activity")}>
+        <Pressable
+          onPress={() => router.push("/daily-activity")}
+          style={{ position: "absolute", right: 0, top: 0 }}
+        >
           <Text style={{ color: theme.colors.primary, ...theme.text.h2 }}>
             +
           </Text>
@@ -53,8 +60,7 @@ export default function TodoTodayCard({ activities }: TodoTodayCardProps) {
               onPress={() => router.push("/daily-activity")}
               style={{
                 paddingVertical: theme.spacing.sm,
-                borderBottomWidth:
-                  index < visibleActivities.length - 1 ? 1 : 0,
+                borderBottomWidth: index < visibleActivities.length - 1 ? 1 : 0,
                 borderBottomColor: theme.colors.border,
               }}
             >

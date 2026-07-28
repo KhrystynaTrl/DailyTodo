@@ -1,137 +1,194 @@
-import { Appointment, appointments } from "../mocks/appointments.mock";
-import { Professional, professionals } from "../mocks/professionals.mock";
-import { ServiceType, serviceTypes } from "../mocks/services.mock";
+// Appuntamenti reali contro il backend Spring Boot (/api/appointments,
+// /api/services, /api/professionals).
+import { Appointment } from "../mocks/appointments.mock";
+import { Professional } from "../mocks/professionals.mock";
+import { ServiceType } from "../mocks/services.mock";
+import {
+  combineDateAndTime,
+  formatDate,
+  formatTime,
+  parseDate,
+  toIsoDate,
+  toLocalDateTimeString,
+} from "../utils/date";
+import { apiFetch } from "./api.client";
 
-const DELAY = 800;
+type BeAppointmentStatus = "PENDING" | "CONFIRMED" | "CANCELLED";
 
-const DAILY_SLOTS = [
-  "09:00",
-  "09:30",
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-];
+type BeAppointment = {
+  id: number;
+  professionalId: number;
+  professionalName: string;
+  serviceTypeId: number;
+  serviceTypeName: string;
+  scheduledAt: string;
+  endAt: string;
+  durationMinutes: number;
+  status: BeAppointmentStatus;
+  notes: string | null;
+  createdAt: string;
+};
 
-export function getAppointments(): Promise<Appointment[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...appointments]), DELAY);
-  });
+type BeServiceType = {
+  id: number;
+  name: string;
+  description: string | null;
+  iconUrl: string | null;
+  durationMinutes: number;
+};
+
+type BeProfessional = {
+  id: number;
+  name: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  rating: number;
+  serviceTypeName: string;
+};
+
+type BeAvailabilitySlot = { start: string; end: string };
+
+type Page<T> = { content: T[] };
+
+const statoMap: Record<BeAppointmentStatus, Appointment["stato"]> = {
+  CONFIRMED: "confermato",
+  PENDING: "in attesa",
+  CANCELLED: "annullato",
+};
+
+function toAppointment(be: BeAppointment): Appointment {
+  const scheduled = new Date(be.scheduledAt);
+
+  return {
+    id: be.id,
+    titolo: be.serviceTypeName,
+    professionista: be.professionalName,
+    professionalId: be.professionalId,
+    tipologia: be.serviceTypeName,
+    serviceTypeId: be.serviceTypeId,
+    data: formatDate(scheduled),
+    ora: formatTime(scheduled),
+    durata: be.durationMinutes,
+    stato: statoMap[be.status],
+    note: be.notes ?? undefined,
+  };
 }
 
-export function getAppointmentById(id: number): Promise<Appointment | undefined> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(appointments.find((a) => a.id === id));
-    }, DELAY);
-  });
+function toServiceType(be: BeServiceType): ServiceType {
+  return { id: be.id, nome: be.name, durata: be.durationMinutes };
 }
 
-export function getServiceTypes(): Promise<ServiceType[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve([...serviceTypes]), DELAY);
-  });
+function toProfessional(be: BeProfessional): Professional {
+  return { id: be.id, nome: be.name, specializzazione: be.serviceTypeName };
 }
 
-export function getProfessionals(serviceTypeId?: number): Promise<Professional[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      if (!serviceTypeId) {
-        resolve([...professionals]);
-        return;
-      }
-
-      const matching = professionals.filter((p) =>
-        p.serviceTypeIds.includes(serviceTypeId),
-      );
-
-      resolve(matching.length > 0 ? matching : [...professionals]);
-    }, DELAY);
-  });
+export async function getAppointments(): Promise<Appointment[]> {
+  const page = await apiFetch<Page<BeAppointment>>("/api/appointments");
+  return page.content.map(toAppointment);
 }
 
-export function getAvailableSlots(
-  professionalName: string,
-  date: string,
-  excludeAppointmentId?: number,
-): Promise<{ time: string; available: boolean }[]> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const taken = new Set(
-        appointments
-          .filter(
-            (a) =>
-              a.professionista === professionalName &&
-              a.data === date &&
-              a.stato !== "annullato" &&
-              a.id !== excludeAppointmentId,
-          )
-          .map((a) => a.ora),
-      );
-
-      resolve(
-        DAILY_SLOTS.map((time) => ({ time, available: !taken.has(time) })),
-      );
-    }, DELAY);
-  });
-}
-
-export function addAppointment(
-  appointment: Omit<Appointment, "id">,
-): Promise<Appointment> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newAppointment: Appointment = {
-        ...appointment,
-        id: Math.max(0, ...appointments.map((a) => a.id)) + 1,
-      };
-      appointments.push(newAppointment);
-      resolve(newAppointment);
-    }, DELAY);
-  });
-}
-
-export function updateAppointment(
+export async function getAppointmentById(
   id: number,
-  changes: Partial<Omit<Appointment, "id">>,
-): Promise<Appointment> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const appointment = appointments.find((a) => a.id === id);
-
-      if (!appointment) {
-        reject(new Error("Appuntamento non trovato"));
-        return;
-      }
-
-      Object.assign(appointment, changes);
-      resolve(appointment);
-    }, DELAY);
-  });
+): Promise<Appointment | undefined> {
+  try {
+    const be = await apiFetch<BeAppointment>(`/api/appointments/${id}`);
+    return toAppointment(be);
+  } catch {
+    return undefined;
+  }
 }
 
-export function cancelAppointment(id: number): Promise<Appointment> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const appointment = appointments.find((a) => a.id === id);
+export async function getServiceTypes(): Promise<ServiceType[]> {
+  const page = await apiFetch<Page<BeServiceType>>("/api/services");
+  return page.content.map(toServiceType);
+}
 
-      if (!appointment) {
-        reject(new Error("Appuntamento non trovato"));
-        return;
-      }
+export async function getProfessionals(
+  serviceTypeId: number,
+): Promise<Professional[]> {
+  const page = await apiFetch<Page<BeProfessional>>(
+    `/api/services/${serviceTypeId}/professionals`,
+  );
+  return page.content.map(toProfessional);
+}
 
-      appointment.stato = "annullato";
-      resolve(appointment);
-    }, DELAY);
+// `currentSlot` mantiene selezionabile l'orario già occupato dall'appuntamento
+// in modifica: il backend restituisce solo gli slot davvero liberi, quindi lo
+// slot corrente (occupato proprio da questo appuntamento) non comparirebbe.
+export async function getAvailableSlots(
+  professionalId: number,
+  date: string,
+  currentSlot?: { data: string; ora: string },
+): Promise<{ time: string; available: boolean }[]> {
+  const isoDate = toIsoDate(parseDate(date));
+  const beSlots = await apiFetch<BeAvailabilitySlot[]>(
+    `/api/professionals/${professionalId}/availability?date=${isoDate}`,
+  );
+
+  const slots = beSlots.map((slot) => ({
+    time: formatTime(new Date(slot.start)),
+    available: true,
+  }));
+
+  if (
+    currentSlot &&
+    currentSlot.data === date &&
+    !slots.some((s) => s.time === currentSlot.ora)
+  ) {
+    slots.push({ time: currentSlot.ora, available: true });
+    slots.sort((a, b) => a.time.localeCompare(b.time));
+  }
+
+  return slots;
+}
+
+export async function addAppointment(input: {
+  professionalId: number;
+  serviceTypeId: number;
+  data: string;
+  ora: string;
+  note?: string;
+}): Promise<Appointment> {
+  const scheduled = combineDateAndTime(input.data, input.ora);
+  const created = await apiFetch<BeAppointment>("/api/appointments", {
+    method: "POST",
+    body: {
+      professionalId: input.professionalId,
+      serviceTypeId: input.serviceTypeId,
+      scheduledAt: toLocalDateTimeString(scheduled),
+      notes: input.note ?? null,
+    },
   });
+  return toAppointment(created);
+}
+
+export async function updateAppointment(
+  id: number,
+  input: {
+    professionalId: number;
+    serviceTypeId: number;
+    data: string;
+    ora: string;
+    note?: string;
+  },
+): Promise<Appointment> {
+  const scheduled = combineDateAndTime(input.data, input.ora);
+  const updated = await apiFetch<BeAppointment>(`/api/appointments/${id}`, {
+    method: "PUT",
+    body: {
+      professionalId: input.professionalId,
+      serviceTypeId: input.serviceTypeId,
+      scheduledAt: toLocalDateTimeString(scheduled),
+      notes: input.note ?? null,
+    },
+  });
+  return toAppointment(updated);
+}
+
+export async function cancelAppointment(id: number): Promise<Appointment> {
+  const updated = await apiFetch<BeAppointment>(
+    `/api/appointments/${id}/cancel`,
+    { method: "PATCH" },
+  );
+  return toAppointment(updated);
 }

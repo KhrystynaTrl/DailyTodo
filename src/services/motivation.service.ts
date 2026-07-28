@@ -1,5 +1,9 @@
-// Servizio collegato a un'API pubblica reale (ZenQuotes) per ottenere frasi
-// motivazionali. Include timeout, tipizzazione della risposta e gestione errori.
+// Frasi motivazionali: il backend fa da proxy verso l'API pubblica ZenQuotes
+// (GET /api/motivation/quotes). Necessario perché ZenQuotes non espone gli
+// header CORS: dal web il browser blocca la risposta di una chiamata diretta,
+// mentre da mobile funzionava perché React Native non applica CORS (è una
+// restrizione solo dei browser). Le chiamate server-to-server non ne risentono.
+import { apiFetch } from "./api.client";
 
 export interface Quote {
   id: string;
@@ -7,61 +11,22 @@ export interface Quote {
   author: string;
 }
 
-// Forma grezza restituita dall'API ZenQuotes: { q: frase, a: autore, h: html }
+// Forma grezza restituita da ZenQuotes (e quindi dal nostro proxy, che la
+// inoltra invariata): { q: frase, a: autore, h: html }
 type ZenQuote = {
   q: string;
   a: string;
   h?: string;
 };
 
-// Errore tipizzato per distinguere il timeout dagli altri errori di rete.
-export class TimeoutError extends Error {
-  constructor() {
-    super("La richiesta ha impiegato troppo tempo. Riprova.");
-    this.name = "TimeoutError";
-  }
-}
-
-const API_URL = "https://zenquotes.io/api/quotes";
-const TIMEOUT_MS = 8000;
-
 export async function getMotivationalQuotes(): Promise<Quote[]> {
-  const controller = new AbortController();
-  // Timeout simulato: se l'API non risponde entro TIMEOUT_MS annulliamo.
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const data = await apiFetch<ZenQuote[]>("/api/motivation/quotes");
 
-  try {
-    const response = await fetch(API_URL, { signal: controller.signal });
-
-    if (!response.ok) {
-      throw new Error(`Il server ha risposto con un errore (${response.status})`);
-    }
-
-    const data = (await response.json()) as ZenQuote[];
-
-    if (!Array.isArray(data)) {
-      throw new Error("Risposta non valida dal servizio");
-    }
-
-    return data
-      .filter((item) => item.q)
-      .map((item, index) => ({
-        id: `${index}-${item.a}`,
-        text: item.q,
-        author: item.a?.trim() || "Anonimo",
-      }));
-  } catch (error) {
-    if (error instanceof Error && error.name === "AbortError") {
-      throw new TimeoutError();
-    }
-    if (error instanceof TimeoutError) {
-      throw error;
-    }
-    // Errori di rete (assenza di connessione, DNS, ecc.)
-    throw new Error(
-      "Impossibile contattare il servizio. Controlla la connessione e riprova.",
-    );
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return data
+    .filter((item) => item.q)
+    .map((item, index) => ({
+      id: `${index}-${item.a}`,
+      text: item.q,
+      author: item.a?.trim() || "Anonimo",
+    }));
 }

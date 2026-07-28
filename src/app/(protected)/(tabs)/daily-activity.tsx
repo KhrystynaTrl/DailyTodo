@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ActivityCard from "../../../components/activity/ActivityCard";
@@ -37,11 +38,24 @@ export default function DailyActivity() {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Activity | null>(null);
 
-  useEffect(() => {
-    getActivities()
-      .then(setActivities)
-      .finally(() => setIsLoading(false));
+  const loadActivities = useCallback(() => {
+    return getActivities().then(setActivities);
   }, []);
+
+  const isFirstLoad = useRef(true);
+
+  // Ricarica ogni volta che la schermata torna in primo piano (es. dopo aver
+  // modificato un'attività da un altro dispositivo), non solo al primo avvio.
+  useFocusEffect(
+    useCallback(() => {
+      loadActivities().finally(() => {
+        if (isFirstLoad.current) {
+          setIsLoading(false);
+          isFirstLoad.current = false;
+        }
+      });
+    }, [loadActivities]),
+  );
 
   const filteredActivities = useMemo(() => {
     return activities.filter((activity) => {
@@ -99,8 +113,11 @@ export default function DailyActivity() {
       }
       setFormVisible(false);
       setEditingActivity(null);
-    } catch {
-      showToast("Errore durante il salvataggio", "error");
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : "Errore durante il salvataggio",
+        "error",
+      );
     }
   };
 

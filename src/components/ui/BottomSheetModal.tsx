@@ -1,7 +1,10 @@
-import React from "react";
-import { KeyboardAvoidingView, Modal, Platform, View, ViewStyle } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Keyboard, Modal, Platform, View, ViewStyle } from "react-native";
 import { useTheme } from "../../context/ThemeContext";
 
+// Il Modal nativo di RN apre una finestra Android separata che spesso non
+// riceve gli eventi di resize di KeyboardAvoidingView: ascoltiamo la
+// tastiera direttamente e spostiamo il foglio verso l'alto di conseguenza.
 export default function BottomSheetModal({
   visible,
   onRequestClose,
@@ -14,6 +17,24 @@ export default function BottomSheetModal({
   children: React.ReactNode;
 }) {
   const { theme } = useTheme();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const showSub = Keyboard.addListener(showEvent, (event) => {
+      setKeyboardHeight(event.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   return (
     <Modal
@@ -29,21 +50,20 @@ export default function BottomSheetModal({
           justifyContent: "flex-end",
         }}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={maxHeight ? { maxHeight } : undefined}
-        >
-          <View
-            style={{
+        <View
+          style={[
+            {
               backgroundColor: theme.colors.background,
               borderTopLeftRadius: theme.radii.lg,
               borderTopRightRadius: theme.radii.lg,
               flexShrink: 1,
-            }}
-          >
-            {children}
-          </View>
-        </KeyboardAvoidingView>
+              marginBottom: keyboardHeight,
+            },
+            maxHeight ? { maxHeight } : undefined,
+          ]}
+        >
+          {children}
+        </View>
       </View>
     </Modal>
   );

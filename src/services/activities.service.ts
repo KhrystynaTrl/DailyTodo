@@ -1,6 +1,12 @@
 // Attività giornaliere reali contro il backend Spring Boot (/api/activities).
 import { Activity } from "../mocks/activities.mock";
-import { formatDate, formatTime, isValidTime, parseDate } from "../utils/date";
+import {
+  combineDateAndTime,
+  formatDate,
+  formatTime,
+  isValidTime,
+  toLocalDateTimeString,
+} from "../utils/date";
 import { apiFetch } from "./api.client";
 
 type BeCategory = "ALLENAMENTO" | "SALUTE" | "ALIMENTAZIONE" | "ALTRO";
@@ -13,6 +19,7 @@ type BeActivity = {
   category: BeCategory;
   priority: BePriority;
   scheduledAt: string;
+  hasTime: boolean;
   durationMin: number | null;
   completed: boolean;
   completedAt: string | null;
@@ -28,33 +35,16 @@ function toActivity(be: BeActivity): Activity {
     descrizione: be.description ?? undefined,
     categoria: be.category.toLowerCase() as Activity["categoria"],
     data: formatDate(scheduled),
-    ora: formatTime(scheduled),
+    ora: be.hasTime ? formatTime(scheduled) : undefined,
     completata: be.completed,
     priorita: be.priority.toLowerCase() as Activity["priorita"],
     durataMinuti: be.durationMin ?? undefined,
   };
 }
 
-// Il backend tratta scheduledAt come LocalDateTime (nessun fuso orario): va
-// quindi mandato come orario "muro" così com'è, MAI con Date#toISOString(),
-// che convertirebbe in UTC e sfaserebbe l'orario della differenza di fuso.
-function toLocalDateTimeString(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
-    `T${pad(date.getHours())}:${pad(date.getMinutes())}:00`
-  );
-}
-
 function toBeBody(activity: Omit<Activity, "id">) {
-  const scheduled = parseDate(activity.data);
-
-  if (activity.ora && isValidTime(activity.ora)) {
-    const [hours, minutes] = activity.ora.split(":").map(Number);
-    scheduled.setHours(hours, minutes, 0, 0);
-  } else {
-    scheduled.setHours(0, 0, 0, 0);
-  }
+  const hasTime = Boolean(activity.ora && isValidTime(activity.ora));
+  const scheduled = combineDateAndTime(activity.data, activity.ora ?? "");
 
   return {
     title: activity.titolo,
@@ -62,6 +52,7 @@ function toBeBody(activity: Omit<Activity, "id">) {
     category: activity.categoria.toUpperCase() as BeCategory,
     priority: activity.priorita.toUpperCase() as BePriority,
     scheduledAt: toLocalDateTimeString(scheduled),
+    hasTime,
     durationMin: activity.durataMinuti ?? null,
     completed: activity.completata,
   };

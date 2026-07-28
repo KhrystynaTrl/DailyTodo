@@ -11,6 +11,7 @@ export default function AuthHeader() {
       <Image
         source={require("../../assets/images/logo.png")}
         style={styles.logo}
+        resizeMode="contain"
       />
       <Text
         style={[
@@ -32,7 +33,6 @@ const styles = StyleSheet.create({
     width: 300,
     height: 120,
     alignSelf: "center",
-    resizeMode: "contain",
     marginBottom: spacing.xl,
   },
 });

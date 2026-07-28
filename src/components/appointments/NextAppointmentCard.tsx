@@ -26,6 +26,7 @@ export default function NextAppointmentCard({
             color: theme.colors.text,
             marginBottom: theme.spacing.sm,
             ...theme.text.h2,
+            textAlign: "center",
           }}
         >
           Prossimo appuntamento

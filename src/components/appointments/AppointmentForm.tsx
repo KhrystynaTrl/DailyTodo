@@ -51,10 +51,13 @@ export default function AppointmentForm({
   useEffect(() => {
     if (!isValidDate(date)) return;
     setIsLoadingSlots(true);
-    getAvailableSlots(appointment.professionista, date, appointment.id)
+    getAvailableSlots(appointment.professionalId, date, {
+      data: appointment.data,
+      ora: appointment.ora,
+    })
       .then(setSlots)
       .finally(() => setIsLoadingSlots(false));
-  }, [appointment.professionista, appointment.id, date]);
+  }, [appointment.professionalId, appointment.data, appointment.ora, date]);
 
   const handleDateChange = (value: string) => {
     setDate(value);
@@ -85,6 +88,8 @@ export default function AppointmentForm({
     setIsSaving(true);
     try {
       const updated = await updateAppointment(appointment.id, {
+        professionalId: appointment.professionalId,
+        serviceTypeId: appointment.serviceTypeId,
         data: date,
         ora: time,
         note: note || undefined,

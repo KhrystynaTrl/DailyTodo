@@ -21,6 +21,7 @@ export default function RecentActivityList({
           color: theme.colors.text,
           marginBottom: theme.spacing.sm,
           ...theme.text.h2,
+          textAlign: "center",
         }}
       >
         Attività recenti

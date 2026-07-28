@@ -14,8 +14,9 @@ type PasswordFieldProps = TextInputProps & {
 };
 
 const PasswordField = React.forwardRef<TextInput, PasswordFieldProps>(
-  function PasswordField({ error, style, ...props }, ref) {
+  function PasswordField({ error, style, onFocus, onBlur, ...props }, ref) {
     const [showPassword, setShowPassword] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
     const { theme } = useTheme();
     const { colors, spacing, radii } = theme;
 
@@ -33,6 +34,8 @@ const PasswordField = React.forwardRef<TextInput, PasswordFieldProps>(
             alignItems: "center",
             backgroundColor: colors.surface,
             borderRadius: radii.md,
+            borderWidth: 1,
+            borderColor: isFocused ? colors.primary : colors.border,
             paddingHorizontal: spacing.md,
           }}
         >
@@ -40,6 +43,14 @@ const PasswordField = React.forwardRef<TextInput, PasswordFieldProps>(
             ref={ref}
             placeholderTextColor={colors.textMuted}
             {...props}
+            onFocus={(e) => {
+              setIsFocused(true);
+              onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              onBlur?.(e);
+            }}
             style={[
               {
                 flex: 1,

@@ -64,7 +64,7 @@ export function useNewAppointmentWizard() {
   useEffect(() => {
     if (!selectedProfessional || !isValidDate(date)) return;
     setIsLoadingSlots(true);
-    getAvailableSlots(selectedProfessional.nome, date)
+    getAvailableSlots(selectedProfessional.id, date)
       .then(setSlots)
       .finally(() => setIsLoadingSlots(false));
   }, [selectedProfessional, date]);
@@ -143,13 +143,10 @@ export function useNewAppointmentWizard() {
     try {
       setIsSubmitting(true);
       const created = await addAppointment({
-        titolo: selectedService.nome,
-        professionista: selectedProfessional.nome,
-        tipologia: selectedService.nome,
+        professionalId: selectedProfessional.id,
+        serviceTypeId: selectedService.id,
         data: date,
         ora: selectedTime,
-        durata: selectedService.durata,
-        stato: "confermato",
         note: note || undefined,
       });
       setCreatedAppointment(created);

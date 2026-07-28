@@ -1,37 +1,24 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs, usePathname } from "expo-router";
+import { Tabs } from "expo-router";
 import { Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import TopBar from "../../../components/ui/TopBar";
 
 import { useTheme } from "../../../context/ThemeContext";
-
-// Route principali su cui mostrare la TopBar fissa. I form interni (es. nuovo
-// appuntamento) hanno un proprio header con back e restano senza TopBar.
-const TOP_BAR_ROUTES = [
-  "/home",
-  "/daily-activity",
-  "/appointments",
-  "/water-consumed",
-  "/weekly-statistics",
-];
 
 export default function TabsLayout() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const pathname = usePathname();
 
   // Su alcuni telefoni (es. Android con navigazione a gesti) insets.bottom è
   // molto piccolo o 0, e la tab bar finisce sotto i tasti di sistema: teniamo
   // uno spazio minimo garantito e un piccolo margine extra di sicurezza.
   const bottomInset = Math.max(insets.bottom, 12) + 8;
 
-  const showTopBar = TOP_BAR_ROUTES.includes(pathname);
-
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      {showTopBar ? <TopBar /> : null}
       <Tabs
+        initialRouteName="home"
+        backBehavior="initialRoute"
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: theme.colors.primary,

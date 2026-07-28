@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { Activity } from "../../mocks/activities.mock";
-import { formatTimeInput } from "../../utils/date";
+import { formatTimeInput, isValidTime, parseDate } from "../../utils/date";
 import { isRequired, isValidDate } from "../../utils/validators";
 import AppButton from "../ui/AppButton";
 import AppTextField from "../ui/AppTextField";
@@ -59,6 +59,12 @@ export default function ActivityForm({
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
 
+  const today = useMemo(() => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  }, []);
+
   const [titolo, setTitolo] = useState(emptyForm.titolo);
   const [titoloError, setTitoloError] = useState("");
   const [descrizione, setDescrizione] = useState(emptyForm.descrizione);
@@ -112,6 +118,26 @@ export default function ActivityForm({
       setDataError("Inserisci una data valida (GG/MM/AAAA)");
       return false;
     }
+
+    const chosen = parseDate(data);
+    chosen.setHours(0, 0, 0, 0);
+
+    if (chosen.getTime() < today.getTime()) {
+      setDataError("Non puoi scegliere una data precedente a oggi");
+      return false;
+    }
+
+    if (chosen.getTime() === today.getTime() && ora && isValidTime(ora)) {
+      const [hours, minutes] = ora.split(":").map(Number);
+      const chosenDateTime = new Date();
+      chosenDateTime.setHours(hours, minutes, 0, 0);
+
+      if (chosenDateTime.getTime() < Date.now()) {
+        setDataError("Non puoi scegliere un orario già passato");
+        return false;
+      }
+    }
+
     setDataError("");
     return true;
   };
@@ -190,12 +216,14 @@ export default function ActivityForm({
           onChangeText={setData}
           onBlur={validateData}
           error={dataError}
+          minimumDate={today}
         />
 
         <AppTextField
           placeholder="Ora (opzionale, HH:MM)"
           value={ora}
           onChangeText={(text) => setOra(formatTimeInput(text))}
+          onBlur={validateData}
           keyboardType="numeric"
           maxLength={5}
         />

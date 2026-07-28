@@ -79,3 +79,35 @@ export const isValidTime = (value: string): boolean => {
 
   return hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59;
 };
+
+// Il backend tratta i LocalDateTime come orario "muro" (nessun fuso): va
+// quindi mandato così com'è, MAI con Date#toISOString(), che convertirebbe in
+// UTC e sfaserebbe l'orario della differenza di fuso.
+export const toLocalDateTimeString = (date: Date): string => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}:00`
+  );
+};
+
+// Se l'ora non è specificata, usiamo quella attuale (con un margine di 1
+// minuto) invece di mezzanotte: per una data odierna, mezzanotte è già nel
+// passato e verrebbe respinta dal backend, che non accetta appuntamenti/
+// attività con data/ora nel passato. Il margine serve perché il formato
+// inviato (toLocalDateTimeString) tronca i secondi a ":00" — senza margine,
+// l'orario troncato risulterebbe già nel passato rispetto a "adesso" appena
+// la richiesta raggiunge il backend.
+export const combineDateAndTime = (data: string, ora: string): Date => {
+  const combined = parseDate(data);
+
+  if (ora && isValidTime(ora)) {
+    const [hours, minutes] = ora.split(":").map(Number);
+    combined.setHours(hours, minutes, 0, 0);
+  } else {
+    const now = new Date(Date.now() + 60_000);
+    combined.setHours(now.getHours(), now.getMinutes(), 0, 0);
+  }
+
+  return combined;
+};
